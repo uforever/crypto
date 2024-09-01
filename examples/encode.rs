@@ -1,0 +1,49 @@
+use std::borrow::Cow;
+
+use crypto::bytes::Bytes;
+use crypto::hex::{Case, FromHex, ToHex};
+use crypto::recipe::Recipe;
+
+fn main() -> anyhow::Result<()> {
+    // bytes
+    let arr_data: &[u8] = &[0x48, 0x65, 0x6c, 0x6c, 0x6f];
+    let vec_data: Vec<u8> = vec![1, 2, 3, 4];
+    let boxed_data: Box<[u8]> = Box::new([5, 6, 7, 8]);
+    let cow_data: Cow<[u8]> = Cow::from(vec![9, 10, 11, 12]);
+
+    let bytes1 = Bytes::new(arr_data);
+    let bytes2 = Bytes::new(vec_data);
+    let bytes3 = Bytes::new(boxed_data);
+    let bytes4 = Bytes::new(cow_data);
+
+    let string_data = String::from("foo");
+    let str_data = "bar";
+
+    let bytes5 = Bytes::from(string_data);
+    let bytes6 = Bytes::from(str_data);
+    let bytes7 = Bytes::default();
+
+    println!("{}", bytes1);
+    println!("{:?}", bytes2);
+    println!("{:?}", bytes3);
+    println!("{:?}", bytes4);
+    println!("{}", bytes5);
+    println!("{}", bytes6);
+    println!("{}", bytes7);
+
+    // hex
+    let from_hex_input = Bytes::from("0x48, 0x65, 0x6c, 0x6c, 0x6f");
+    let from_hex_op = FromHex::new(", ", "0x");
+    let recipe1 = Recipe::new(vec![from_hex_op]);
+    let from_hex_output = recipe1.bake(from_hex_input)?;
+    println!("{}", from_hex_output);
+
+    let to_hex_input = Bytes::from("Hello");
+    //let to_hex_op = ToHex::default();
+    let to_hex_op = ToHex::new(Case::Upper, " ", "\\x");
+    let recipe2 = Recipe::new(vec![to_hex_op]);
+    let to_hex_output = recipe2.bake(to_hex_input)?;
+    println!("{}", to_hex_output);
+
+    Ok(())
+}
