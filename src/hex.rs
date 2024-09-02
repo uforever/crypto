@@ -2,23 +2,16 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 
 #[derive(Default)]
-pub enum Case {
-    #[default]
-    Lower,
-    Upper,
-}
-
-#[derive(Default)]
 pub struct FromHex {
-    delimiter: String,
-    prefix: String,
+    pub delimiter: String,
+    pub prefix: String,
 }
 
 #[derive(Default)]
 pub struct ToHex {
-    case: Case,
-    delimiter: String,
-    prefix: String,
+    pub delimiter: String,
+    pub prefix: String,
+    pub upper_case: bool,
 }
 
 impl FromHex {
@@ -31,11 +24,11 @@ impl FromHex {
 }
 
 impl ToHex {
-    pub fn new(case: Case, delimiter: &str, prefix: &str) -> Self {
+    pub fn new(delimiter: &str, prefix: &str, upper_case: bool) -> Self {
         Self {
-            case,
             delimiter: delimiter.to_string(),
             prefix: prefix.to_string(),
+            upper_case,
         }
     }
 }
@@ -64,9 +57,12 @@ impl Operation for ToHex {
         let hex_string = input
             .to_vec()
             .iter()
-            .map(|byte| match self.case {
-                Case::Lower => format!("{}{:02x}", self.prefix, byte),
-                Case::Upper => format!("{}{:02X}", self.prefix, byte),
+            .map(|byte| {
+                if self.upper_case {
+                    format!("{}{:02X}", self.prefix, byte)
+                } else {
+                    format!("{}{:02x}", self.prefix, byte)
+                }
             })
             .collect::<Vec<String>>()
             .join(&self.delimiter);

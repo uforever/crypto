@@ -1,7 +1,8 @@
 use std::borrow::Cow;
 
+use crypto::base64::{alphabet, FromBase64, ToBase64};
 use crypto::bytes::Bytes;
-use crypto::hex::{Case, FromHex, ToHex};
+use crypto::hex::{FromHex, ToHex};
 use crypto::recipe::Recipe;
 
 fn main() -> anyhow::Result<()> {
@@ -40,10 +41,29 @@ fn main() -> anyhow::Result<()> {
 
     let to_hex_input = Bytes::from("Hello");
     //let to_hex_op = ToHex::default();
-    let to_hex_op = ToHex::new(Case::Upper, " ", "\\x");
+    let to_hex_op = ToHex::new(" ", "\\x", true);
     let recipe2 = Recipe::new(vec![to_hex_op]);
     let to_hex_output = recipe2.bake(to_hex_input)?;
     println!("{}", to_hex_output);
+
+    // base64
+    let from_base64_input = Bytes::from("SGVsbG8=");
+    let from_base64_op = FromBase64 {
+        strict_mode: true,
+        ..Default::default()
+    };
+    //let from_base64_input = Bytes::from("5'9XE'm");
+    //let from_base64_op = FromBase64::new(alphabet::BIN_HEX, false);
+    let recipe4 = Recipe::new(vec![from_base64_op]);
+    let from_base64_output = recipe4.bake(from_base64_input)?;
+    println!("{}", from_base64_output);
+
+    let to_base64_input = Bytes::from("Hello");
+    //let to_base64_op = ToBase64::default();
+    let to_base64_op = ToBase64::new(alphabet::BIN_HEX);
+    let recipe3 = Recipe::new(vec![to_base64_op]);
+    let to_base64_output = recipe3.bake(to_base64_input)?;
+    println!("{}", to_base64_output);
 
     Ok(())
 }

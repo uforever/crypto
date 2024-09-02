@@ -2,7 +2,7 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 
 pub struct Recipe<T: Operation> {
-    op_list: Vec<T>,
+    pub op_list: Vec<T>,
 }
 
 impl<T: Operation> Recipe<T> {
