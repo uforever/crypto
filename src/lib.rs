@@ -1,6 +1,7 @@
 pub mod base64;
 pub mod bytes;
 pub mod hex;
+pub mod md5;
 pub mod operation;
 pub mod rc4;
 pub mod recipe;
