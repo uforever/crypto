@@ -98,7 +98,6 @@ impl Operation for MD5 {
             d0 = d0.wrapping_add(d);
         }
 
-        //Ok(Bytes::new(result))
         Ok(Bytes::new(
             [
                 a0.to_le_bytes(),
