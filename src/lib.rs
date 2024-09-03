@@ -2,6 +2,7 @@ pub mod base64;
 pub mod bytes;
 pub mod hex;
 pub mod operation;
+pub mod rc4;
 pub mod recipe;
 
 pub fn add(left: u64, right: u64) -> u64 {

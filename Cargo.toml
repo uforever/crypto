@@ -4,7 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [[example]]
-name = "encode"
+name = "encoding"
+
+[[example]]
+name = "encryption"
+
+[[example]]
+name = "hashing"
 
 [dependencies]
 anyhow = "1.0"
