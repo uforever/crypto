@@ -80,16 +80,22 @@ impl Operation for MD5 {
                     g = (7 * i) % 16;
                 }
 
+                let g = g as usize;
+                let i = i as usize;
+                let message: [u8; 4] = [
+                    chunk[4 * g],
+                    chunk[4 * g + 1],
+                    chunk[4 * g + 2],
+                    chunk[4 * g + 3],
+                ];
                 f = f
                     .wrapping_add(a)
-                    .wrapping_add(K[i as usize])
-                    .wrapping_add(u32::from_le_bytes(
-                        chunk[(4 * g as usize)..4 * g as usize + 4].try_into()?,
-                    ));
+                    .wrapping_add(K[i])
+                    .wrapping_add(u32::from_le_bytes(message));
                 a = d;
                 d = c;
                 c = b;
-                b = b.wrapping_add(f.rotate_left(S[i as usize]));
+                b = b.wrapping_add(f.rotate_left(S[i]));
             }
 
             a0 = a0.wrapping_add(a);

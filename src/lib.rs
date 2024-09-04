@@ -5,6 +5,7 @@ pub mod md5;
 pub mod operation;
 pub mod rc4;
 pub mod recipe;
+pub mod sha1;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
