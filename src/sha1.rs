@@ -32,7 +32,9 @@ fn padding(data: &[u8]) -> Vec<u8> {
     let original_len: u64 = data.len() as u64 * 8;
     padded_data.push(0x80);
 
-    while (padded_data.len() * 8) % 512 != 448 {
+    //while (padded_data.len() * 8) % 512 != 448 {
+    // 8 bytes for original length
+    while padded_data.len() % 64 != 56 {
         padded_data.push(0);
     }
 
@@ -50,7 +52,7 @@ impl Operation for SHA1 {
         let mut d0 = D;
         let mut e0 = E;
 
-        for chunck in padded_data.chunks(64) {
+        for chunk in padded_data.chunks(64) {
             let mut a = a0;
             let mut b = b0;
             let mut c = c0;
@@ -62,10 +64,10 @@ impl Operation for SHA1 {
             for i in 0..self.rounds {
                 let word = if i < 16 {
                     u32::from_be_bytes([
-                        chunck[i * 4],
-                        chunck[i * 4 + 1],
-                        chunck[i * 4 + 2],
-                        chunck[i * 4 + 3],
+                        chunk[i * 4],
+                        chunk[i * 4 + 1],
+                        chunk[i * 4 + 2],
+                        chunk[i * 4 + 3],
                     ])
                 } else {
                     (words[i - 3] ^ words[i - 8] ^ words[i - 14] ^ words[i - 16]).rotate_left(1)

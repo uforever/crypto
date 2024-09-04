@@ -25,21 +25,15 @@ const K: [u32; 64] = [
     0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
 ];
 
-#[derive(Default)]
 pub struct MD5;
-
-impl MD5 {
-    pub fn new() -> Self {
-        Self
-    }
-}
 
 fn padding(data: &[u8]) -> Vec<u8> {
     let mut padded_data = Vec::from(data);
     let original_len: u64 = data.len() as u64 * 8;
     padded_data.push(0x80);
 
-    while (padded_data.len() * 8) % 512 != 448 {
+    // 8 bytes for original length
+    while padded_data.len() % 64 != 56 {
         padded_data.push(0);
     }
 
