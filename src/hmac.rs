@@ -8,7 +8,6 @@ pub struct HMAC<T: Hashing> {
 }
 
 impl<T: Hashing> HMAC<T> {
-    //pub fn new(key: Bytes) -> Self {
     pub fn new(key: Bytes) -> Self {
         Self {
             key,
@@ -19,10 +18,26 @@ impl<T: Hashing> HMAC<T> {
 
 impl<T: Hashing> Operation for HMAC<T> {
     fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
-        println!("{}", self.key);
-        println!("{:?}", self.hash_function);
+        let key_len = self.key.len();
+        let block_size = self.hash_function.block_size();
 
-        let output = self.hash_function.run(input)?;
-        Ok(output)
+        // 对key进行padding (如果key长度大于block_size，则先hash)
+        let mut sized_key = if key_len > block_size {
+            self.hash_function.run(self.key.clone())?.to_vec()
+        } else {
+            self.key.to_vec()
+        };
+        sized_key.resize(block_size, 0);
+
+        let mut opad: Vec<u8> = sized_key.iter().map(|b| b ^ 0x5c).collect();
+        let mut ipad: Vec<u8> = sized_key.iter().map(|b| b ^ 0x36).collect();
+
+        // 将message拼接到ipad后做一次hash
+        ipad.extend_from_slice(&input);
+        let ipad_hash = self.hash_function.run(Bytes::new(ipad))?;
+
+        // 将计算结果拼接到opad后再做一次hash
+        opad.extend_from_slice(&ipad_hash);
+        self.hash_function.run(Bytes::new(opad))
     }
 }

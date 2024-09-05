@@ -1,7 +1,7 @@
 use std::fmt;
 use std::ops::Deref;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Bytes {
     inner: Vec<u8>,
 }

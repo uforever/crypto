@@ -43,9 +43,9 @@ fn main() -> anyhow::Result<()> {
 
     // HMAC
     println!("---- ---- HMAC ---- ----");
-    let hmac_input = Bytes::default();
-    let hmac_key = Bytes::from("key");
-    let hmac_op = HMAC::<SHA1>::new(hmac_key);
+    let hmac_input = Bytes::from("Hello, world!");
+    let hmac_key = Bytes::from("5d939b5d53749fdead9f86bfff5f6f4bc831f4eb5b80f3f123a761f786f0e265296b0c6865233939c7610e271b45553ebf1b2a1bf7d38af6931161a82e64dad600");
+    let hmac_op = HMAC::<SHA512>::new(hmac_key);
     //println!("{:?}", hmac_op);
     let recipe5 = Recipe::new(vec![hmac_op]);
     let hmac_output = recipe5.bake(hmac_input)?;
