@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Alphabet {
     pub charset: [u8; 64],
     pub padding: Option<u8>,

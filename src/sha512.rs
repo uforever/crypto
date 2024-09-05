@@ -1,5 +1,5 @@
 use crate::bytes::Bytes;
-use crate::operation::Operation;
+use crate::operation::{Hashing, Operation};
 
 // 前8个质数2..19的平方根的分数部分的前64位
 const A: u64 = 0x6a09e667f3bcc908;
@@ -95,6 +95,7 @@ const K: [u64; 80] = [
     0x6c44198c4a475817,
 ];
 
+#[derive(Debug, Default)]
 pub struct SHA512;
 
 fn padding(data: &[u8]) -> Vec<u8> {
@@ -206,5 +207,15 @@ impl Operation for SHA512 {
             ]
             .concat(),
         ))
+    }
+}
+
+impl Hashing for SHA512 {
+    fn block_size(&self) -> usize {
+        128
+    }
+
+    fn output_size(&self) -> usize {
+        64
     }
 }

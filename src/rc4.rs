@@ -1,7 +1,7 @@
 use crate::bytes::Bytes;
 use crate::operation::Operation;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct RC4 {
     passphrase: Bytes,
 }

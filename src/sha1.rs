@@ -1,5 +1,5 @@
 use crate::bytes::Bytes;
-use crate::operation::Operation;
+use crate::operation::{Hashing, Operation};
 
 const A: u32 = 0x67452301;
 const B: u32 = 0xEFCDAB89;
@@ -7,6 +7,7 @@ const C: u32 = 0x98BADCFE;
 const D: u32 = 0x10325476;
 const E: u32 = 0xC3D2E1F0;
 
+#[derive(Debug)]
 pub struct SHA1 {
     pub rounds: usize,
 }
@@ -127,5 +128,14 @@ impl Operation for SHA1 {
             ]
             .concat(),
         ))
+    }
+}
+
+impl Hashing for SHA1 {
+    fn block_size(&self) -> usize {
+        64
+    }
+    fn output_size(&self) -> usize {
+        20
     }
 }

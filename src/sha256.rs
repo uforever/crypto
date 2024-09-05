@@ -1,5 +1,5 @@
 use crate::bytes::Bytes;
-use crate::operation::Operation;
+use crate::operation::{Hashing, Operation};
 
 // 前8个质数2..19的平方根的分数部分的前32位
 const A: u32 = 0x6a09e667;
@@ -23,6 +23,7 @@ const K: [u32; 64] = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
+#[derive(Debug, Default)]
 pub struct SHA256;
 
 fn padding(data: &[u8]) -> Vec<u8> {
@@ -131,5 +132,14 @@ impl Operation for SHA256 {
             ]
             .concat(),
         ))
+    }
+}
+
+impl Hashing for SHA256 {
+    fn block_size(&self) -> usize {
+        64
+    }
+    fn output_size(&self) -> usize {
+        32
     }
 }

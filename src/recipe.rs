@@ -1,6 +1,7 @@
 use crate::bytes::Bytes;
 use crate::operation::Operation;
 
+#[derive(Debug)]
 pub struct Recipe<T: Operation> {
     pub op_list: Vec<T>,
 }

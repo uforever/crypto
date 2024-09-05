@@ -4,13 +4,13 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use alphabet::Alphabet;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct FromBase64 {
     pub alphabet: Alphabet,
     pub strict_mode: bool,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct ToBase64 {
     pub alphabet: Alphabet,
 }

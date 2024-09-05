@@ -1,5 +1,5 @@
 use crate::bytes::Bytes;
-use crate::operation::Operation;
+use crate::operation::{Hashing, Operation};
 
 //const INIT_STATE: [u32; 4] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
 const A: u32 = 0x67452301;
@@ -25,6 +25,7 @@ const K: [u32; 64] = [
     0x6fa87e4f, 0xfe2ce6e0, 0xa3014314, 0x4e0811a1, 0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
 ];
 
+#[derive(Debug, Default)]
 pub struct MD5;
 
 fn padding(data: &[u8]) -> Vec<u8> {
@@ -107,5 +108,15 @@ impl Operation for MD5 {
             ]
             .concat(),
         ))
+    }
+}
+
+impl Hashing for MD5 {
+    fn block_size(&self) -> usize {
+        64
+    }
+
+    fn output_size(&self) -> usize {
+        16
     }
 }

@@ -1,13 +1,13 @@
 use crate::bytes::Bytes;
 use crate::operation::Operation;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct FromHex {
     pub delimiter: String,
     pub prefix: String,
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct ToHex {
     pub delimiter: String,
     pub prefix: String,
