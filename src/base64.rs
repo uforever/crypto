@@ -30,7 +30,7 @@ impl ToBase64 {
     }
 }
 impl Operation for FromBase64 {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let mut collected_bits = 0usize;
         let mut combined_buffer = 0u16;
         let mut output_bytes: Vec<u8> = Vec::new();
@@ -76,7 +76,7 @@ impl Operation for FromBase64 {
 }
 
 impl Operation for ToBase64 {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let mut encoded_bits_count = 0usize;
         let mut base64_string = String::new();
         let length = input.len();

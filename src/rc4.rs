@@ -46,7 +46,7 @@ fn ksa(key: &[u8]) -> [u8; 256] {
 }
 
 impl Operation for RC4 {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let mut s_box = ksa(&self.passphrase);
 
         // 伪随机生成算法PRGA

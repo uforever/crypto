@@ -17,13 +17,13 @@ impl<T: Hashing> HMAC<T> {
 }
 
 impl<T: Hashing> Operation for HMAC<T> {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let key_len = self.key.len();
         let block_size = self.hash_function.block_size();
 
         // 对key进行padding (如果key长度大于block_size，则先hash)
         let mut sized_key = if key_len > block_size {
-            self.hash_function.run(self.key.clone())?.to_vec()
+            self.hash_function.run(&self.key)?.to_vec()
         } else {
             self.key.to_vec()
         };
@@ -33,11 +33,11 @@ impl<T: Hashing> Operation for HMAC<T> {
         let mut ipad: Vec<u8> = sized_key.iter().map(|b| b ^ 0x36).collect();
 
         // 将message拼接到ipad后做一次hash
-        ipad.extend_from_slice(&input);
-        let ipad_hash = self.hash_function.run(Bytes::new(ipad))?;
+        ipad.extend_from_slice(input);
+        let ipad_hash = self.hash_function.run(&ipad)?;
 
         // 将计算结果拼接到opad后再做一次hash
         opad.extend_from_slice(&ipad_hash);
-        self.hash_function.run(Bytes::new(opad))
+        self.hash_function.run(&opad)
     }
 }

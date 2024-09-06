@@ -12,7 +12,7 @@ fn main() -> anyhow::Result<()> {
     //let md5_input = Bytes::default();
     let md5_input = Bytes::from("123456");
     let recipe1 = Recipe::new(vec![MD5]);
-    let md5_output = recipe1.bake(md5_input)?;
+    let md5_output = recipe1.bake(&md5_input)?;
     println!("{:?}", md5_output);
     println!("---- ---- ---- ---- ----");
     println!();
@@ -23,7 +23,7 @@ fn main() -> anyhow::Result<()> {
     let sha1_op = SHA1::default();
     //println!("{:?}", sha1_op);
     let recipe2 = Recipe::new(vec![sha1_op]);
-    let sha1_output = recipe2.bake(sha1_input)?;
+    let sha1_output = recipe2.bake(&sha1_input)?;
     println!("{:?}", sha1_output);
     println!("---- ---- ---- ---- ----");
     println!();
@@ -32,11 +32,11 @@ fn main() -> anyhow::Result<()> {
     println!("---- ---- SHA2 ---- ----");
     let sha256_input = Bytes::default();
     let recipe3 = Recipe::new(vec![SHA256]);
-    let sha256_output = recipe3.bake(sha256_input)?;
+    let sha256_output = recipe3.bake(&sha256_input)?;
     println!("{:?}", sha256_output);
     let sha512_input = Bytes::from("123456");
     let recipe4 = Recipe::new(vec![SHA512]);
-    let sha512_output = recipe4.bake(sha512_input)?;
+    let sha512_output = recipe4.bake(&sha512_input)?;
     println!("{:?}", sha512_output);
     println!("---- ---- ---- ---- ----");
     println!();
@@ -48,7 +48,7 @@ fn main() -> anyhow::Result<()> {
     let hmac_op = HMAC::<SHA512>::new(hmac_key);
     //println!("{:?}", hmac_op);
     let recipe5 = Recipe::new(vec![hmac_op]);
-    let hmac_output = recipe5.bake(hmac_input)?;
+    let hmac_output = recipe5.bake(&hmac_input)?;
     println!("{:?}", hmac_output);
     println!("---- ---- ---- ---- ----");
     println!();

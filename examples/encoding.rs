@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
     let from_hex_op = FromHex::new(", ", "0x");
     //println!("{:?}", from_hex_op);
     let recipe1 = Recipe::new(vec![from_hex_op]);
-    let from_hex_output = recipe1.bake(from_hex_input)?;
+    let from_hex_output = recipe1.bake(&from_hex_input)?;
     println!("{}", from_hex_output);
 
     let to_hex_input = Bytes::from("Hello");
@@ -49,7 +49,7 @@ fn main() -> anyhow::Result<()> {
     let to_hex_op = ToHex::new(" ", "\\x", true);
     //println!("{:?}", to_hex_op);
     let recipe2 = Recipe::new(vec![to_hex_op]);
-    let to_hex_output = recipe2.bake(to_hex_input)?;
+    let to_hex_output = recipe2.bake(&to_hex_input)?;
     println!("{}", to_hex_output);
     println!("---- ---- ---- ---- ----");
     println!();
@@ -65,7 +65,7 @@ fn main() -> anyhow::Result<()> {
     //let from_base64_input = Bytes::from("5'9XE'm");
     //let from_base64_op = FromBase64::new(alphabet::BIN_HEX, false);
     let recipe4 = Recipe::new(vec![from_base64_op]);
-    let from_base64_output = recipe4.bake(from_base64_input)?;
+    let from_base64_output = recipe4.bake(&from_base64_input)?;
     println!("{}", from_base64_output);
 
     let to_base64_input = Bytes::from("Hello");
@@ -73,7 +73,7 @@ fn main() -> anyhow::Result<()> {
     let to_base64_op = ToBase64::new(alphabet::BIN_HEX);
     //println!("{:?}", to_base64_op);
     let recipe3 = Recipe::new(vec![to_base64_op]);
-    let to_base64_output = recipe3.bake(to_base64_input)?;
+    let to_base64_output = recipe3.bake(&to_base64_input)?;
     println!("{}", to_base64_output);
     println!("---- ---- ---- ---- ----");
     println!();

@@ -44,8 +44,8 @@ fn padding(data: &[u8]) -> Vec<u8> {
 }
 
 impl Operation for SHA1 {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
-        let padded_data = padding(&input);
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+        let padded_data = padding(input);
 
         let mut a0 = A;
         let mut b0 = B;

@@ -2,7 +2,7 @@ use crate::bytes::Bytes;
 use std::fmt::Debug;
 
 pub trait Operation {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes>;
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes>;
 }
 
 pub trait Hashing: Operation + Default + Debug {

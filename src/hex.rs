@@ -34,7 +34,7 @@ impl ToHex {
 }
 
 impl Operation for FromHex {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let hex_string = String::from_utf8(input.to_vec())?;
         let bytes: anyhow::Result<Vec<u8>> = hex_string
             .split(&self.delimiter)
@@ -53,7 +53,7 @@ impl Operation for FromHex {
 }
 
 impl Operation for ToHex {
-    fn run(&self, input: Bytes) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let hex_string = input
             .to_vec()
             .iter()

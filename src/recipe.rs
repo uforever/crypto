@@ -11,11 +11,10 @@ impl<T: Operation> Recipe<T> {
         Self { op_list }
     }
 
-    pub fn bake(&self, input: Bytes) -> anyhow::Result<Bytes> {
-        let mut output = input;
-        for op in self.op_list.iter() {
-            output = op.run(output)?;
-        }
-        Ok(output)
+    pub fn bake(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+        let output = self.op_list.iter().try_fold(input.to_vec(), |data, op| {
+            op.run(&data).map(|result| result.to_vec())
+        })?;
+        Ok(Bytes::new(output))
     }
 }
