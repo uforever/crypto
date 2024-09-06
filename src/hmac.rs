@@ -19,7 +19,7 @@ impl<T: Hashing> HMAC<T> {
 impl<T: Hashing> Operation for HMAC<T> {
     fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
         let key_len = self.key.len();
-        let block_size = self.hash_function.block_size();
+        let block_size: usize = self.hash_function.block_size().into();
 
         // 对key进行padding (如果key长度大于block_size，则先hash)
         let mut sized_key = if key_len > block_size {

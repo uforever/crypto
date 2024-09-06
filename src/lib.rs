@@ -4,6 +4,7 @@ pub mod hex;
 pub mod hmac;
 pub mod md5;
 pub mod operation;
+pub mod padding;
 pub mod rc4;
 pub mod recipe;
 pub mod sha1;

@@ -1,5 +1,8 @@
 use crate::bytes::Bytes;
-use crate::operation::{Hashing, Operation};
+use crate::operation::{BlockSize, Hashing, Operation};
+use crate::padding::{BitPadding, Endian, Padding as _};
+
+const BLOCK_SIZE: BlockSize = BlockSize::Bytes64;
 
 //const INIT_STATE: [u32; 4] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
 const A: u32 = 0x67452301;
@@ -28,23 +31,9 @@ const K: [u32; 64] = [
 #[derive(Debug, Default)]
 pub struct MD5;
 
-fn padding(data: &[u8]) -> Vec<u8> {
-    let mut padded_data = Vec::from(data);
-    let original_len: u64 = data.len() as u64 * 8;
-    padded_data.push(0x80);
-
-    // 8 bytes for original length
-    while padded_data.len() % 64 != 56 {
-        padded_data.push(0);
-    }
-
-    padded_data.extend_from_slice(&original_len.to_le_bytes());
-    padded_data
-}
-
 impl Operation for MD5 {
     fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
-        let padded_data = padding(input);
+        let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Little).pad(input);
 
         let mut a0 = A;
         let mut b0 = B;
@@ -112,11 +101,11 @@ impl Operation for MD5 {
 }
 
 impl Hashing for MD5 {
-    fn block_size(&self) -> usize {
-        64
+    fn block_size(&self) -> BlockSize {
+        BLOCK_SIZE
     }
 
-    fn output_size(&self) -> usize {
-        16
-    }
+    //fn output_size(&self) -> usize {
+    //    16
+    //}
 }
