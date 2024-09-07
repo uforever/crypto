@@ -3,8 +3,8 @@ use crypto::hmac::HMAC;
 use crypto::md5::MD5;
 use crypto::recipe::Recipe;
 use crypto::sha1::SHA1;
-use crypto::sha256::SHA256;
-use crypto::sha512::SHA512;
+use crypto::sha2::SHA256;
+use crypto::sha2::SHA512;
 
 fn main() -> anyhow::Result<()> {
     // MD5

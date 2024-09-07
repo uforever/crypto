@@ -8,8 +8,7 @@ pub mod padding;
 pub mod rc4;
 pub mod recipe;
 pub mod sha1;
-pub mod sha256;
-pub mod sha512;
+pub mod sha2;
 
 pub fn add(left: u64, right: u64) -> u64 {
     left + right
