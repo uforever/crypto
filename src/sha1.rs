@@ -1,6 +1,6 @@
 use crate::bytes::Bytes;
-use crate::enums::Endian;
-use crate::operation::{BlockSize, Hashing, Operation};
+use crate::enums::{BlockSize, Endian};
+use crate::operation::{Hashing, Operation};
 use crate::padding::{BitPadding, Padding as _};
 
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes64;
