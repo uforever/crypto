@@ -2,6 +2,7 @@ use std::borrow::Cow;
 
 use crypto::base64::{alphabet, FromBase64, ToBase64};
 use crypto::bytes::Bytes;
+use crypto::enums::Case;
 use crypto::hex::{FromHex, ToHex};
 use crypto::recipe::Recipe;
 
@@ -46,7 +47,7 @@ fn main() -> anyhow::Result<()> {
 
     let to_hex_input = Bytes::from("Hello");
     //let to_hex_op = ToHex::default();
-    let to_hex_op = ToHex::new(" ", "\\x", true);
+    let to_hex_op = ToHex::new(" ", "\\x", Case::Upper);
     //println!("{:?}", to_hex_op);
     let recipe2 = Recipe::new(vec![to_hex_op]);
     let to_hex_output = recipe2.bake(&to_hex_input)?;
