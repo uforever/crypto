@@ -1,5 +1,5 @@
-use super::Padding;
 use crate::enums::{BlockSize, Endian};
+use crate::padding::Padding;
 
 #[derive(Debug)]
 pub struct BitPadding {

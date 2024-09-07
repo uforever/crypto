@@ -1,4 +1,4 @@
-use super::Padding;
+use crate::padding::Padding;
 
 #[derive(Debug)]
 pub struct PKCSPadding {
