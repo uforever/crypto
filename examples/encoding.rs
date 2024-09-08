@@ -41,6 +41,8 @@ fn main() -> Result<()> {
     println!("---- ---- Hex ---- ----");
     let from_hex_input = Bytes::from("0x48, 0x65, 0x6c, 0x6c, 0x6f");
     let from_hex_op = FromHex::new(", ", "0x");
+    //let from_hex_input = Bytes::from("48656c6c6f");
+    //let from_hex_op = FromHex::default();
     //println!("{:?}", from_hex_op);
     let recipe1 = Recipe::new(vec![from_hex_op]);
     let from_hex_output = recipe1.bake(&from_hex_input)?;
