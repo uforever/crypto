@@ -1,5 +1,6 @@
 use crate::bytes::Bytes;
 use crate::operation::Operation;
+use crate::types::Result;
 
 #[derive(Debug)]
 pub struct Recipe<T: Operation> {
@@ -11,7 +12,7 @@ impl<T: Operation> Recipe<T> {
         Self { op_list }
     }
 
-    pub fn bake(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    pub fn bake(&self, input: &[u8]) -> Result<Bytes> {
         let output = self.op_list.iter().try_fold(input.to_vec(), |data, op| {
             op.run(&data).map(|result| result.to_vec())
         })?;

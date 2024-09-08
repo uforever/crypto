@@ -5,8 +5,9 @@ use crypto::recipe::Recipe;
 use crypto::sha1::SHA1;
 use crypto::sha2::SHA256;
 use crypto::sha2::SHA512;
+use crypto::types::Result;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     // MD5
     println!("---- ---- MD5 ---- ----");
     //let md5_input = Bytes::default();

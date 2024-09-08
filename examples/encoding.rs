@@ -5,8 +5,9 @@ use crypto::bytes::Bytes;
 use crypto::enums::Case;
 use crypto::hex::{FromHex, ToHex};
 use crypto::recipe::Recipe;
+use crypto::types::Result;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     // bytes
     println!("---- ---- Bytes ---- ----");
     let arr_data: &[u8] = &[0x48, 0x65, 0x6c, 0x6c, 0x6f];

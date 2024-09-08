@@ -1,6 +1,7 @@
 use crate::bytes::Bytes;
 use crate::enums::Case;
 use crate::operation::Operation;
+use crate::types::Result;
 
 #[derive(Debug, Default)]
 pub struct ToHex {
@@ -20,7 +21,7 @@ impl ToHex {
 }
 
 impl Operation for ToHex {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let hex_string = input
             .to_vec()
             .iter()

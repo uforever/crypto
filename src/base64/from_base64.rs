@@ -1,6 +1,7 @@
 use crate::base64::alphabet::Alphabet;
 use crate::bytes::Bytes;
 use crate::operation::Operation;
+use crate::types::Result;
 
 #[derive(Debug, Default)]
 pub struct FromBase64 {
@@ -18,7 +19,7 @@ impl FromBase64 {
 }
 
 impl Operation for FromBase64 {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut collected_bits = 0usize;
         let mut combined_buffer = 0u16;
         let mut output_bytes: Vec<u8> = Vec::new();
@@ -29,9 +30,7 @@ impl Operation for FromBase64 {
             } else if self.alphabet.padding == Some(*byte) {
                 if collected_bits == 0 {
                     if self.strict_mode {
-                        return Err(anyhow::anyhow!(
-                            "[FromBase64] invalid padding in strict mode"
-                        ));
+                        return Err("[FromBase64] invalid padding in strict mode".into());
                     } else {
                         collected_bits = 6;
                     }
@@ -39,9 +38,7 @@ impl Operation for FromBase64 {
                     collected_bits -= 2;
                 }
             } else {
-                return Err(anyhow::anyhow!(
-                    "[FromBase64] invalid character in base64 string"
-                ));
+                return Err("[FromBase64] invalid character in base64 string".into());
             }
 
             if collected_bits >= 8 {
@@ -54,9 +51,7 @@ impl Operation for FromBase64 {
 
         // strict mode
         if self.strict_mode && collected_bits != 0 && self.alphabet.padding.is_some() {
-            return Err(anyhow::anyhow!(
-                "[FromBase64] invalid padding in strict mode"
-            ));
+            return Err("[FromBase64] invalid padding in strict mode".into());
         }
 
         Ok(Bytes::new(output_bytes))

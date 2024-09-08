@@ -1,5 +1,6 @@
 use crate::bytes::Bytes;
 use crate::operation::{Hashing, Operation};
+use crate::types::Result;
 
 #[derive(Debug)]
 pub struct HMAC<T: Hashing> {
@@ -17,7 +18,7 @@ impl<T: Hashing> HMAC<T> {
 }
 
 impl<T: Hashing> Operation for HMAC<T> {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let key_len = self.key.len();
         let block_size: usize = self.hash_function.block_size().into();
 

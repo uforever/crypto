@@ -1,5 +1,6 @@
 use crate::bytes::Bytes;
 use crate::operation::Operation;
+use crate::types::Result;
 
 #[derive(Debug, Default)]
 pub struct FromHex {
@@ -17,16 +18,16 @@ impl FromHex {
 }
 
 impl Operation for FromHex {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let hex_string = String::from_utf8(input.to_vec())?;
-        let bytes: anyhow::Result<Vec<u8>> = hex_string
+        let bytes: Result<Vec<u8>> = hex_string
             .split(&self.delimiter)
             .map(|part| {
                 let byte_str = part
                     .strip_prefix(&self.prefix)
-                    .ok_or_else(|| anyhow::anyhow!("[FromHex] unexpected prefix"))?;
-                let byte = u8::from_str_radix(byte_str, 16)
-                    .map_err(|e| anyhow::anyhow!("[FromHex] {}", e))?;
+                    .ok_or("[FromHex] unexpected prefix")?;
+                let byte =
+                    u8::from_str_radix(byte_str, 16).map_err(|e| format!("[FromHex] {}", e))?;
                 Ok(byte)
             })
             .collect();

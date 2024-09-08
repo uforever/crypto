@@ -1,6 +1,7 @@
 use crate::base64::alphabet::Alphabet;
 use crate::bytes::Bytes;
 use crate::operation::Operation;
+use crate::types::Result;
 
 #[derive(Debug, Default)]
 pub struct ToBase64 {
@@ -13,7 +14,7 @@ impl ToBase64 {
     }
 }
 impl Operation for ToBase64 {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut encoded_bits_count = 0usize;
         let mut base64_string = String::new();
         let length = input.len();

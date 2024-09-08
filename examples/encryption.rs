@@ -1,8 +1,9 @@
 use crypto::bytes::Bytes;
 use crypto::rc4::RC4;
 use crypto::recipe::Recipe;
+use crypto::types::Result;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     // RC4
     println!("---- ---- RC4 ---- ----");
     let rc4_input = Bytes::from("Hello");

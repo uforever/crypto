@@ -2,6 +2,7 @@ use crate::bytes::Bytes;
 use crate::enums::{BlockSize, Endian};
 use crate::operation::{Hashing, Operation};
 use crate::padding::{BitPadding, Padding as _};
+use crate::types::Result;
 
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes64;
 
@@ -31,7 +32,7 @@ const K: [u32; 64] = [
 pub struct SHA256;
 
 impl Operation for SHA256 {
-    fn run(&self, input: &[u8]) -> anyhow::Result<Bytes> {
+    fn run(&self, input: &[u8]) -> Result<Bytes> {
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Big).pad(input);
 
         let mut a0 = A;
