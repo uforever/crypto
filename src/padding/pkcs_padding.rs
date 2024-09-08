@@ -11,6 +11,7 @@ impl PKCSPadding {
     }
 }
 
+// PKCS#7
 impl Padding for PKCSPadding {
     fn pad(&self, data: &[u8]) -> Vec<u8> {
         let mut padded_data = data.to_vec();

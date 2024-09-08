@@ -13,6 +13,8 @@ impl BitPadding {
     }
 }
 
+// 虽然是bit填充 实现上还是按照byte填充的
+// 可以满足大部分使用场景
 impl Padding for BitPadding {
     fn pad(&self, data: &[u8]) -> Vec<u8> {
         let mut padded_data = data.to_vec();
