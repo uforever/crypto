@@ -13,27 +13,27 @@ const D: u32 = 0x10325476;
 const E: u32 = 0xC3D2E1F0;
 
 #[derive(Debug)]
-pub struct SHA1 {
+pub struct Sha1 {
     pub rounds: usize,
 }
 
-impl Default for SHA1 {
+impl Default for Sha1 {
     fn default() -> Self {
-        SHA1 { rounds: 80 }
+        Sha1 { rounds: 80 }
     }
 }
 
-impl SHA1 {
-    pub fn new(rounds: usize) -> SHA1 {
+impl Sha1 {
+    pub fn new(rounds: usize) -> Sha1 {
         if rounds == 0 {
-            return SHA1 { rounds: 80 };
+            return Sha1 { rounds: 80 };
         }
 
-        SHA1 { rounds }
+        Sha1 { rounds }
     }
 }
 
-impl Operation for SHA1 {
+impl Operation for Sha1 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Big).pad(input);
 
@@ -121,7 +121,7 @@ impl Operation for SHA1 {
     }
 }
 
-impl Hashing for SHA1 {
+impl Hashing for Sha1 {
     fn block_size(&self) -> BlockSize {
         BLOCK_SIZE
     }

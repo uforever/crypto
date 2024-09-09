@@ -101,9 +101,9 @@ const K: [u64; 80] = [
 ];
 
 #[derive(Debug, Default)]
-pub struct SHA512;
+pub struct Sha512;
 
-impl Operation for SHA512 {
+impl Operation for Sha512 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Big).pad(input);
 
@@ -201,7 +201,7 @@ impl Operation for SHA512 {
     }
 }
 
-impl Hashing for SHA512 {
+impl Hashing for Sha512 {
     fn block_size(&self) -> BlockSize {
         BLOCK_SIZE
     }

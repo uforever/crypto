@@ -3,11 +3,11 @@ use crate::operation::Operation;
 use crate::types::Result;
 
 #[derive(Debug, Default)]
-pub struct RC4 {
+pub struct Rc4 {
     passphrase: Bytes,
 }
 
-impl RC4 {
+impl Rc4 {
     pub fn new(passphrase: Bytes) -> Self {
         Self { passphrase }
     }
@@ -46,7 +46,7 @@ fn ksa(key: &[u8]) -> [u8; 256] {
     s_box
 }
 
-impl Operation for RC4 {
+impl Operation for Rc4 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut s_box = ksa(&self.passphrase);
 

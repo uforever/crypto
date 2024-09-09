@@ -31,9 +31,9 @@ const K: [u32; 64] = [
 ];
 
 #[derive(Debug, Default)]
-pub struct MD5;
+pub struct Md5;
 
-impl Operation for MD5 {
+impl Operation for Md5 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Little).pad(input);
 
@@ -102,7 +102,7 @@ impl Operation for MD5 {
     }
 }
 
-impl Hashing for MD5 {
+impl Hashing for Md5 {
     fn block_size(&self) -> BlockSize {
         BLOCK_SIZE
     }

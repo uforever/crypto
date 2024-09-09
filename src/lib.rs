@@ -1,5 +1,6 @@
 pub mod base64;
 pub mod bytes;
+pub mod des;
 pub mod enums;
 pub mod hex;
 pub mod hmac;

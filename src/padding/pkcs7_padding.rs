@@ -1,18 +1,17 @@
 use crate::padding::Padding;
 
 #[derive(Debug)]
-pub struct PKCSPadding {
+pub struct Pkcs7Padding {
     pub block_size: usize,
 }
 
-impl PKCSPadding {
+impl Pkcs7Padding {
     pub fn new(block_size: usize) -> Self {
         Self { block_size }
     }
 }
 
-// PKCS#7
-impl Padding for PKCSPadding {
+impl Padding for Pkcs7Padding {
     fn pad(&self, data: &[u8]) -> Vec<u8> {
         let mut padded_data = data.to_vec();
         let pad_len = self.block_size - (data.len() % self.block_size);

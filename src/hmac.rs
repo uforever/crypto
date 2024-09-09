@@ -3,12 +3,12 @@ use crate::operation::{Hashing, Operation};
 use crate::types::Result;
 
 #[derive(Debug)]
-pub struct HMAC<T: Hashing> {
+pub struct Hmac<T: Hashing> {
     key: Bytes,
     hash_function: T,
 }
 
-impl<T: Hashing> HMAC<T> {
+impl<T: Hashing> Hmac<T> {
     pub fn new(key: Bytes) -> Self {
         Self {
             key,
@@ -17,7 +17,7 @@ impl<T: Hashing> HMAC<T> {
     }
 }
 
-impl<T: Hashing> Operation for HMAC<T> {
+impl<T: Hashing> Operation for Hmac<T> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let key_len = self.key.len();
         let block_size: usize = self.hash_function.block_size().into();

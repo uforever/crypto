@@ -29,9 +29,9 @@ const K: [u32; 64] = [
 ];
 
 #[derive(Debug, Default)]
-pub struct SHA256;
+pub struct Sha256;
 
-impl Operation for SHA256 {
+impl Operation for Sha256 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Big).pad(input);
 
@@ -125,7 +125,7 @@ impl Operation for SHA256 {
     }
 }
 
-impl Hashing for SHA256 {
+impl Hashing for Sha256 {
     fn block_size(&self) -> BlockSize {
         BLOCK_SIZE
     }
