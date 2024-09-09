@@ -2,6 +2,7 @@ use crate::base64::alphabet::Alphabet;
 use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
+use std::str::FromStr;
 
 #[derive(Debug, Default)]
 pub struct ToBase64 {
@@ -44,6 +45,6 @@ impl Operation for ToBase64 {
             }
         }
 
-        Ok(Bytes::from(base64_string))
+        Bytes::from_str(&base64_string)
     }
 }

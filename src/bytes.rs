@@ -1,7 +1,9 @@
+use crate::types::Error;
 use std::fmt;
 use std::ops::Deref;
+use std::str::FromStr;
 
-#[derive(Clone, Default)]
+#[derive(Default)]
 pub struct Bytes {
     inner: Vec<u8>,
 }
@@ -41,11 +43,34 @@ impl fmt::Display for Bytes {
     }
 }
 
-impl<T> From<T> for Bytes
-where
-    T: Deref<Target = str>,
-{
-    fn from(value: T) -> Self {
-        Self::new(value.as_bytes())
+//impl<T> From<T> for Bytes
+//where
+//    T: Deref<Target = [Bit]>,
+//{
+//    fn from(value: T) -> Self {
+//        let mut bytes = vec![];
+//        let bits = value.deref();
+//
+//        for chunk in bits.chunks(8) {
+//            let mut byte = 0u8;
+//            for (i, bit) in chunk.iter().enumerate() {
+//                match bit {
+//                    Bit::Zero => {}
+//                    Bit::One => {
+//                        byte |= 1 << i;
+//                    }
+//                }
+//            }
+//            bytes.push(byte);
+//        }
+//        Self::new(bytes)
+//    }
+//}
+
+impl FromStr for Bytes {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::new(s.as_bytes()))
     }
 }
