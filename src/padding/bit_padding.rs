@@ -65,4 +65,8 @@ impl Padding for BitPadding {
         padded_data.extend(length_bytes);
         padded_data
     }
+
+    fn build(block_size: BlockSize) -> Self {
+        Self::new(block_size, Endian::Big)
+    }
 }

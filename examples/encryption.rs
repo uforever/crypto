@@ -1,5 +1,6 @@
 use crypto::bytes::Bytes;
 use crypto::des::DesEncrypt;
+use crypto::padding::Pkcs7Padding;
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
@@ -24,7 +25,7 @@ fn main() -> Result<()> {
     println!("---- ---- DES ---- ----");
     let des_input = Bytes::from_str("Hello, World!")?;
     //let des_op = DesEncrypt::new(Bytes::from("123"));
-    let des_op = DesEncrypt::new(Bytes::from_str("12345678")?);
+    let des_op = DesEncrypt::<Pkcs7Padding>::new(Bytes::from_str("12345678")?);
     let recipe2 = Recipe::new(vec![des_op]);
     let des_output = recipe2.bake(&des_input)?;
     println!("{:?}", des_output);

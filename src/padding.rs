@@ -1,3 +1,5 @@
+use crate::enums::BlockSize;
+
 mod bit_padding;
 mod pkcs7_padding;
 mod zero_padding;
@@ -8,4 +10,6 @@ pub use zero_padding::ZeroPadding;
 
 pub trait Padding {
     fn pad(&self, data: &[u8]) -> Vec<u8>;
+
+    fn build(block_size: BlockSize) -> Self;
 }
