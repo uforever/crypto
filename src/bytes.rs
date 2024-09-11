@@ -1,3 +1,5 @@
+use crate::bits::Bits;
+use crate::enums::Bit;
 use crate::types::Error;
 use std::fmt;
 use std::ops::Deref;
@@ -14,6 +16,10 @@ impl Bytes {
         T: Deref<Target = [u8]>,
     {
         Self { inner: s.to_vec() }
+    }
+
+    pub fn to_bits(&self) -> Bits {
+        Bits::from(self.deref())
     }
 }
 
@@ -43,29 +49,29 @@ impl fmt::Display for Bytes {
     }
 }
 
-//impl<T> From<T> for Bytes
-//where
-//    T: Deref<Target = [Bit]>,
-//{
-//    fn from(value: T) -> Self {
-//        let mut bytes = vec![];
-//        let bits = value.deref();
-//
-//        for chunk in bits.chunks(8) {
-//            let mut byte = 0u8;
-//            for (i, bit) in chunk.iter().enumerate() {
-//                match bit {
-//                    Bit::Zero => {}
-//                    Bit::One => {
-//                        byte |= 1 << i;
-//                    }
-//                }
-//            }
-//            bytes.push(byte);
-//        }
-//        Self::new(bytes)
-//    }
-//}
+impl<T> From<T> for Bytes
+where
+    T: Deref<Target = [Bit]>,
+{
+    fn from(value: T) -> Self {
+        let bits = value.deref();
+        let mut length = bits.len();
+        let modulus = length % 8;
+        let aligned_bits: Bits = if modulus != 0 {
+            length = length / 8 + 1;
+            Bits::new(bits).align(length * 8, Bit::Zero)
+        } else {
+            length /= 8;
+            Bits::new(bits)
+        };
+        let mut bytes = Vec::with_capacity(length);
+
+        for chunk in aligned_bits.chunks(8) {
+            bytes.push(Bits::new(chunk).to_usize() as u8);
+        }
+        Self::new(bytes)
+    }
+}
 
 impl FromStr for Bytes {
     type Err = Error;

@@ -111,19 +111,16 @@ const PC2_ARRAY: [[usize; 48]; 16] = [
     ],
 ];
 
-fn substitution(input: &Bits) -> Bits {
+fn s_boxes(input: &Bits) -> Bits {
     let mut result = vec![];
 
     for (box_index, chunk) in input.chunks(6).enumerate() {
         // bits to uzise
         let bits = Bits::new(chunk);
-        let index = usize::from(&bits);
+        let s_box = S_BOXES[box_index];
 
-        if let Some(bits) = S_BOXES[box_index].get(index) {
-            for bit in bits.iter() {
-                result.push(*bit);
-            }
-        }
+        let substituted_bits = bits.substitution(s_box);
+        result.extend_from_slice(&substituted_bits);
     }
     Bits::new(result)
 }

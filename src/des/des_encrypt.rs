@@ -1,7 +1,6 @@
 use crate::bits::Bits;
 use crate::bytes::Bytes;
-use crate::des::{substitution, E, FP, IP, P, PC1, PC2_ARRAY};
-use crate::enums::Bit;
+use crate::des::{s_boxes, E, FP, IP, P, PC1, PC2_ARRAY};
 use crate::enums::BlockSize;
 use crate::operation::Operation;
 use crate::padding::Padding;
@@ -28,7 +27,7 @@ impl<T: Padding> Operation for DesEncrypt<T> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         // 取有效位 56 bit
         // PC1: 64bit -> 56bit
-        let original_key: Bits = self.key.as_ref().into();
+        let original_key: Bits = self.key.to_bits();
         let key: Bits = original_key.permutation(&PC1);
 
         // 通过分成左右两部
@@ -42,32 +41,38 @@ impl<T: Padding> Operation for DesEncrypt<T> {
         // 填充
         let padded_data = self.padding.pad(input);
 
+        // TODO
+
         // 分块
         for chunk in padded_data.chunks(8) {
             let block: Bits = chunk.into();
+            // initial permutation
             let permuted_block = block.permutation(&IP);
+
             let mut left = Bits::new(&permuted_block[0..32]);
             let mut right = Bits::new(&permuted_block[32..]);
 
-            for i in 0..16 {
-                // 32bit -> 48bit
+            for sub_key in &sub_keys {
+                // expand 32bit -> 48bit
                 let expanded_right = right.permutation(&E);
-                // xor subkey
-                let xor_result = expanded_right.xor(&sub_keys[i]);
+                // xor with subkey
+                let xor_result = expanded_right.xor(sub_key);
 
-                // 48bit -> 32bit
-                let sub_result = substitution(&xor_result);
-
+                // substitute 48bit -> 32bit
+                let substituted_result = s_boxes(&xor_result);
                 // 32bit -> 32bit permutation
-                let permuted_result = sub_result.permutation(&P);
+                let permuted_result = substituted_result.permutation(&P);
 
-                let result = permuted_result.xor(&left);
+                // xor with left
+                let new_right = permuted_result.xor(&left);
                 left = right;
-                right = result;
+                right = new_right;
             }
 
-            let final_result: Vec<Bit> = [right.to_vec(), left.to_vec()].concat();
-            let final_bits: Bits = Bits::new(final_result);
+            // 交换左右两部分
+            let final_bits: Bits = Bits::new([right.to_vec(), left.to_vec()].concat());
+
+            // final permutation
             let cipher_block = final_bits.permutation(&FP);
             println!("{:?}", cipher_block);
         }

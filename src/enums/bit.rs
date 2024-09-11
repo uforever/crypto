@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::fmt;
 use std::ops::BitXor;
 
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
@@ -21,21 +21,8 @@ impl BitXor for Bit {
     }
 }
 
-impl<'a> BitXor<&'a Bit> for &'a Bit {
-    type Output = Bit;
-
-    fn bitxor(self, rhs: &'a Bit) -> Self::Output {
-        match (self, rhs) {
-            (&Bit::Zero, &Bit::Zero) => Bit::Zero,
-            (&Bit::Zero, &Bit::One) => Bit::One,
-            (&Bit::One, &Bit::Zero) => Bit::One,
-            (&Bit::One, &Bit::One) => Bit::Zero,
-        }
-    }
-}
-
-impl Debug for Bit {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Debug for Bit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Bit::Zero => write!(f, "0"),
             Bit::One => write!(f, "1"),
