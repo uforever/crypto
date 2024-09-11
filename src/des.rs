@@ -1,4 +1,5 @@
 use crate::bits::Bits;
+use crate::bytes::Bytes;
 use crate::enums::Bit::{self, One, Zero};
 
 mod des_decrypt;
@@ -110,20 +111,6 @@ const PC2_ARRAY: [[usize; 48]; 16] = [
         51, 30, 36, 46, 54, 29, 39, 50, 44, 32, 47, 43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31,
     ],
 ];
-
-fn s_boxes(input: &Bits) -> Bits {
-    let mut result = vec![];
-
-    for (box_index, chunk) in input.chunks(6).enumerate() {
-        // bits to uzise
-        let bits = Bits::new(chunk);
-        let s_box = S_BOXES[box_index];
-
-        let substituted_bits = bits.substitution(s_box);
-        result.extend_from_slice(&substituted_bits);
-    }
-    Bits::new(result)
-}
 
 const S_BOXES: [[[Bit; 4]; 64]; 8] = [
     [
@@ -655,3 +642,67 @@ const S_BOXES: [[[Bit; 4]; 64]; 8] = [
         [One, Zero, One, One],
     ],
 ];
+
+// 生成 sub_keys
+fn generate_sub_keys(key: &Bytes) -> Vec<Bits> {
+    // 取有效位 56 bit
+    // PC1: 64bit -> 56bit
+    let original_key: Bits = key.to_bits();
+    let key: Bits = original_key.permutation(&PC1);
+
+    // 通过分成左右两部
+    // 分别循环左移 再通过PC2生成16个48bit的key
+    // PC2: 56bit -> 48bit * 16
+    let mut sub_keys = vec![];
+    (0..16).for_each(|i| {
+        sub_keys.push(key.permutation(&PC2_ARRAY[i]));
+    });
+
+    sub_keys
+}
+
+// 替换 48bit -> 32bit
+fn s_boxes(input: &Bits) -> Bits {
+    let mut result = vec![];
+
+    for (box_index, chunk) in input.chunks(6).enumerate() {
+        // bits to uzise
+        let bits = Bits::new(chunk);
+        let s_box = S_BOXES[box_index];
+
+        let substituted_bits = bits.substitution(s_box);
+        result.extend_from_slice(&substituted_bits);
+    }
+    Bits::new(result)
+}
+
+fn block_crypt(sub_keys: &[Bits]) -> impl Fn(Bits) -> Bits + '_ {
+    move |block: Bits| -> Bits {
+        // initial permutation
+        let permuted_block = block.permutation(&IP);
+
+        let mut left = Bits::new(&permuted_block[0..32]);
+        let mut right = Bits::new(&permuted_block[32..]);
+
+        for sub_key in sub_keys {
+            // expand 32bit -> 48bit
+            let expanded_right = right.permutation(&E);
+            // xor with subkey
+            let xor_result = expanded_right.xor(sub_key);
+
+            // substitute 48bit -> 32bit
+            let substituted_result = s_boxes(&xor_result);
+            // 32bit -> 32bit permutation
+            let permuted_result = substituted_result.permutation(&P);
+
+            // xor with left
+            let new_right = permuted_result.xor(&left);
+            left = right;
+            right = new_right;
+        }
+
+        let final_bits: Bits = Bits::new([right.to_vec(), left.to_vec()].concat());
+        // final permutation
+        final_bits.permutation(&FP)
+    }
+}
