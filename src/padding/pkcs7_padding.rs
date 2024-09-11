@@ -22,7 +22,10 @@ impl Padding for Pkcs7Padding {
     }
 
     fn unpad(&self, data: &[u8]) -> Vec<u8> {
-        todo!()
+        let length = data.len();
+        let pad_len = data[length - 1] as usize;
+        let unpadded_data = &data[0..length - pad_len];
+        unpadded_data.to_vec()
     }
 
     fn build(block_size: BlockSize) -> Self {

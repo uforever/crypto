@@ -39,13 +39,10 @@ impl<T: Padding> Operation for DesDecrypt<T> {
         });
         sub_keys.reverse();
 
-        // 填充
-        let padded_data = self.padding.pad(input);
-
         let mut output: Vec<u8> = vec![];
 
         // 分块
-        for chunk in padded_data.chunks(8) {
+        for chunk in input.chunks(8) {
             let block: Bits = chunk.into();
             // initial permutation
             let permuted_block = block.permutation(&IP);
@@ -78,6 +75,9 @@ impl<T: Padding> Operation for DesDecrypt<T> {
             output.extend_from_slice(&Bytes::from(cipher_block));
         }
 
-        Ok(Bytes::new(output))
+        // 去除填充
+        let unpadded_data = self.padding.unpad(&output);
+
+        Ok(Bytes::new(unpadded_data))
     }
 }

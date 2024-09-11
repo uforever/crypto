@@ -21,8 +21,13 @@ impl Padding for ZeroPadding {
         padded_data
     }
 
+    // 严格来说是不可逆的
     fn unpad(&self, data: &[u8]) -> Vec<u8> {
-        todo!()
+        let mut end = data.len();
+        while end > 0 && data[end - 1] == 0 {
+            end -= 1;
+        }
+        data[..end].to_vec()
     }
 
     fn build(block_size: BlockSize) -> Self {
