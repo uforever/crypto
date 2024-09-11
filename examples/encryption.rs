@@ -1,11 +1,12 @@
-use crypto::base64::ToBase64;
+use std::str::FromStr;
+
+use crypto::base64::{FromBase64, ToBase64};
 use crypto::bytes::Bytes;
 use crypto::des::DesEncrypt;
 use crypto::padding::Pkcs7Padding;
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
-use std::str::FromStr;
 
 fn main() -> Result<()> {
     // RC4
@@ -26,11 +27,17 @@ fn main() -> Result<()> {
     println!("---- ---- DES ---- ----");
     let des_input = Bytes::from_str("Hello, World!")?;
     //let des_op = DesEncrypt::new(Bytes::from("123"));
-    let des_op = DesEncrypt::<Pkcs7Padding>::new(Bytes::from_str("12345678")?);
+    let des_encrypt = DesEncrypt::<Pkcs7Padding>::new(Bytes::from_str("12345678")?);
     let to_base64_op = ToBase64::default();
-    let recipe2 = Recipe::new(vec![Box::new(des_op), Box::new(to_base64_op)]);
-    let des_output = recipe2.bake(&des_input)?;
-    println!("{}", des_output);
+    let recipe2 = Recipe::new(vec![Box::new(des_encrypt), Box::new(to_base64_op)]);
+    let des_encrypt_result = recipe2.bake(&des_input)?;
+    println!("{}", des_encrypt_result);
+
+    let des_decrypt = DesEncrypt::<Pkcs7Padding>::new(Bytes::from_str("12345678")?);
+    let from_base64_op = FromBase64::default();
+    let recipe3 = Recipe::new(vec![Box::new(from_base64_op), Box::new(des_decrypt)]);
+    let des_decrypt_result = recipe3.bake(&des_encrypt_result)?;
+    println!("{}", des_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 

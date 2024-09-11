@@ -9,12 +9,12 @@ use crate::types::Result;
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes8;
 
 #[derive(Debug)]
-pub struct DesEncrypt<T: Padding> {
+pub struct DesDecrypt<T: Padding> {
     pub key: Bytes,
     pub padding: T,
 }
 
-impl<T: Padding> DesEncrypt<T> {
+impl<T: Padding> DesDecrypt<T> {
     pub fn new(key: Bytes) -> Self {
         Self {
             key,
@@ -23,7 +23,7 @@ impl<T: Padding> DesEncrypt<T> {
     }
 }
 
-impl<T: Padding> Operation for DesEncrypt<T> {
+impl<T: Padding> Operation for DesDecrypt<T> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         // 取有效位 56 bit
         // PC1: 64bit -> 56bit
@@ -37,6 +37,7 @@ impl<T: Padding> Operation for DesEncrypt<T> {
         (0..16).for_each(|i| {
             sub_keys.push(key.permutation(&PC2_ARRAY[i]));
         });
+        sub_keys.reverse();
 
         // 填充
         let padded_data = self.padding.pad(input);

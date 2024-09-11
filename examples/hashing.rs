@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crypto::base64::ToBase64;
 use crypto::bytes::Bytes;
 use crypto::hmac::Hmac;
@@ -7,8 +9,6 @@ use crypto::sha1::Sha1;
 use crypto::sha2::Sha256;
 use crypto::sha2::Sha512;
 use crypto::types::Result;
-
-use std::str::FromStr;
 
 fn main() -> Result<()> {
     // MD5

@@ -10,6 +10,7 @@ pub use zero_padding::ZeroPadding;
 
 pub trait Padding {
     fn pad(&self, data: &[u8]) -> Vec<u8>;
+    fn unpad(&self, data: &[u8]) -> Vec<u8>;
 
     fn build(block_size: BlockSize) -> Self;
 }

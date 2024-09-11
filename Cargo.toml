@@ -12,4 +12,7 @@ name = "encryption"
 [[example]]
 name = "hashing"
 
+[[example]]
+name = "padding"
+
 [dependencies]

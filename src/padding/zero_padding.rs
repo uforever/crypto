@@ -21,6 +21,10 @@ impl Padding for ZeroPadding {
         padded_data
     }
 
+    fn unpad(&self, data: &[u8]) -> Vec<u8> {
+        todo!()
+    }
+
     fn build(block_size: BlockSize) -> Self {
         Self { block_size }
     }
