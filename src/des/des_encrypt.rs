@@ -42,6 +42,7 @@ impl<T: Padding> Operation for DesEncrypt<T> {
         let padded_data = self.padding.pad(input);
 
         // TODO
+        let mut output: Vec<u8> = vec![];
 
         // 分块
         for chunk in padded_data.chunks(8) {
@@ -74,9 +75,9 @@ impl<T: Padding> Operation for DesEncrypt<T> {
 
             // final permutation
             let cipher_block = final_bits.permutation(&FP);
-            println!("{:?}", cipher_block);
+            output.extend_from_slice(&Bytes::from(cipher_block));
         }
 
-        Ok(Bytes::default())
+        Ok(Bytes::new(output))
     }
 }

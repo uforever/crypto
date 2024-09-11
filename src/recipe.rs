@@ -2,13 +2,13 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
-#[derive(Debug)]
-pub struct Recipe<T: Operation> {
-    pub op_list: Vec<T>,
+//#[derive(Debug)]
+pub struct Recipe {
+    pub op_list: Vec<Box<dyn Operation>>,
 }
 
-impl<T: Operation> Recipe<T> {
-    pub fn new(op_list: Vec<T>) -> Self {
+impl Recipe {
+    pub fn new(op_list: Vec<Box<dyn Operation>>) -> Self {
         Self { op_list }
     }
 
