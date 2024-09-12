@@ -1,8 +1,9 @@
+use std::str::FromStr;
+
 use crate::bytes::Bytes;
 use crate::enums::Case;
 use crate::operation::Operation;
 use crate::types::Result;
-use std::str::FromStr;
 
 #[derive(Debug, Default)]
 pub struct ToHex {

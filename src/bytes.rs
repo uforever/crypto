@@ -1,9 +1,10 @@
-use crate::bits::Bits;
-use crate::enums::Bit;
-use crate::types::Error;
 use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
+
+use crate::bits::Bits;
+use crate::enums::Bit;
+use crate::types::Error;
 
 #[derive(Clone, Default)]
 pub struct Bytes {
@@ -49,20 +50,16 @@ impl fmt::Display for Bytes {
     }
 }
 
-impl<T> From<T> for Bytes
-where
-    T: Deref<Target = [Bit]>,
-{
-    fn from(value: T) -> Self {
-        let bits = value.deref();
-        let mut length = bits.len();
+impl From<&[Bit]> for Bytes {
+    fn from(value: &[Bit]) -> Self {
+        let mut length = value.len();
         let modulus = length % 8;
         let aligned_bits: Bits = if modulus != 0 {
             length = length / 8 + 1;
-            Bits::new(bits).align(length * 8, Bit::Zero)
+            Bits::new(value).align(length * 8, Bit::Zero)
         } else {
             length /= 8;
-            Bits::new(bits)
+            Bits::new(value)
         };
         let mut bytes = Vec::with_capacity(length);
 

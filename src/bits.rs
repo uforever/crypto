@@ -1,6 +1,8 @@
-use crate::enums::Bit::{self, One, Zero};
 use std::fmt;
 use std::ops::{BitXor, Deref};
+
+use crate::bytes::Bytes;
+use crate::enums::Bit::{self, One, Zero};
 
 #[derive(Clone, Default)]
 pub struct Bits {
@@ -13,6 +15,10 @@ impl Bits {
         T: Deref<Target = [Bit]>,
     {
         Self { inner: s.to_vec() }
+    }
+
+    pub fn to_bytes(&self) -> Bytes {
+        Bytes::from(self.deref())
     }
 
     pub fn xor(&self, other: &Self) -> Self {

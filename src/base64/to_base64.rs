@@ -1,8 +1,9 @@
+use std::str::FromStr;
+
 use crate::base64::alphabet::Alphabet;
 use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
-use std::str::FromStr;
 
 #[derive(Debug, Default)]
 pub struct ToBase64 {

@@ -3,8 +3,8 @@ use std::str::FromStr;
 use crypto::base64::{FromBase64, ToBase64};
 use crypto::bytes::Bytes;
 use crypto::des::{DesDecrypt, DesEncrypt};
-use crypto::mode::Ecb;
-use crypto::padding::Pkcs7Padding;
+use crypto::mode::{Cbc, Ecb};
+use crypto::padding::{Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
@@ -27,19 +27,41 @@ fn main() -> Result<()> {
     // DES
     println!("---- ---- DES ---- ----");
     let des_input = Bytes::from_str("Hello, World!")?;
-    let key = Bytes::from_str("123")?;
-    let mode = Ecb;
-    let des_encrypt = DesEncrypt::<Ecb, Pkcs7Padding>::new(&key, mode);
-    let to_base64_op = ToBase64::default();
-    let recipe2 = Recipe::new(vec![Box::new(des_encrypt), Box::new(to_base64_op)]);
-    let des_encrypt_result = recipe2.bake(&des_input)?;
-    println!("{}", des_encrypt_result);
 
-    let des_decrypt = DesDecrypt::<_, Pkcs7Padding>::new(&key, mode);
-    let from_base64_op = FromBase64::default();
-    let recipe3 = Recipe::new(vec![Box::new(from_base64_op), Box::new(des_decrypt)]);
-    let des_decrypt_result = recipe3.bake(&des_encrypt_result)?;
-    println!("{}", des_decrypt_result);
+    let des_ecb_key = Bytes::from_str("12345678")?;
+    let des_ecb_encrypt = DesEncrypt::<Ecb, ZeroPadding>::new(&des_ecb_key, Ecb);
+    let recipe2 = Recipe::new(vec![
+        Box::new(des_ecb_encrypt),
+        Box::new(ToBase64::default()),
+    ]);
+    let des_ecb_encrypt_result = recipe2.bake(&des_input)?;
+    println!("{}", des_ecb_encrypt_result);
+
+    let des_ecb_decrypt = DesDecrypt::<_, ZeroPadding>::new(&des_ecb_key, Ecb);
+    let recipe3 = Recipe::new(vec![
+        Box::new(FromBase64::default()),
+        Box::new(des_ecb_decrypt),
+    ]);
+    let des_ecb_decrypt_result = recipe3.bake(&des_ecb_encrypt_result)?;
+    println!("{}", des_ecb_decrypt_result);
+
+    let des_cbc_key = Bytes::from_str("321")?;
+    let des_cbc_iv = Bytes::from_str("123")?;
+    let des_cbc_encrypt = DesEncrypt::<_, Pkcs7Padding>::new(&des_cbc_key, Cbc::new(&des_cbc_iv));
+    let recipe4 = Recipe::new(vec![
+        Box::new(des_cbc_encrypt),
+        Box::new(ToBase64::default()),
+    ]);
+    let des_cbc_encrypt_result = recipe4.bake(&des_input)?;
+    println!("{}", des_cbc_encrypt_result);
+
+    let des_cbc_decrypt = DesDecrypt::<_, Pkcs7Padding>::new(&des_cbc_key, Cbc::new(&des_cbc_iv));
+    let recipe5 = Recipe::new(vec![
+        Box::new(FromBase64::default()),
+        Box::new(des_cbc_decrypt),
+    ]);
+    let des_cbc_decrypt_result = recipe5.bake(&des_cbc_encrypt_result)?;
+    println!("{}", des_cbc_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 

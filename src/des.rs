@@ -676,10 +676,10 @@ fn s_boxes(input: &Bits) -> Bits {
     Bits::new(result)
 }
 
-fn block_crypt(sub_keys: &[Bits]) -> impl Fn(Bits) -> Bits + '_ {
-    move |block: Bits| -> Bits {
+fn block_crypt(sub_keys: &[Bits]) -> impl Fn(&[Bit]) -> Bits + '_ {
+    move |block: &[Bit]| -> Bits {
         // initial permutation
-        let permuted_block = block.permutation(&IP);
+        let permuted_block = Bits::new(block).permutation(&IP);
 
         let mut left = Bits::new(&permuted_block[0..32]);
         let mut right = Bits::new(&permuted_block[32..]);

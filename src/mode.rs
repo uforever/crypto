@@ -1,8 +1,8 @@
+use std::fmt::Debug;
+
 use crate::bits::Bits;
 use crate::bytes::Bytes;
-use crate::enums::BlockSize;
-
-use std::fmt::Debug;
+use crate::enums::{Bit, BlockSize};
 
 mod cbc;
 mod ecb;
@@ -15,13 +15,13 @@ pub trait Mode: Debug {
         &self,
         input: &[u8],
         block_size: BlockSize,
-        block_decrypt: impl Fn(Bits) -> Bits,
+        block_decrypt: impl Fn(&[Bit]) -> Bits,
     ) -> Bytes;
 
     fn encrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
-        block_encrypt: impl Fn(Bits) -> Bits,
+        block_encrypt: impl Fn(&[Bit]) -> Bits,
     ) -> Bytes;
 }
