@@ -9,13 +9,13 @@ use crate::types::Result;
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes8;
 
 #[derive(Debug)]
-pub struct TripleDesEncrypt<M: Mode, P: Padding> {
+pub struct TripleDesDecrypt<M: Mode, P: Padding> {
     pub key: Bytes,
     pub mode: M,
     pub padding: P,
 }
 
-impl<M: Mode, P: Padding> TripleDesEncrypt<M, P> {
+impl<M: Mode, P: Padding> TripleDesDecrypt<M, P> {
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -25,7 +25,7 @@ impl<M: Mode, P: Padding> TripleDesEncrypt<M, P> {
     }
 }
 
-impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
+impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut key = self.key.to_vec();
         // 对 2-key 3DES (也被称为2TDEA) 进行特殊处理
@@ -45,20 +45,21 @@ impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
             )
         };
 
-        // 加密 -> 解密 -> 加密
-        let sub_keys1 = key_schedule(&key1);
-        let mut sub_keys2 = key_schedule(&key2);
-        sub_keys2.reverse();
-        let sub_keys3 = key_schedule(&key3);
+        // 解密 -> 加密 -> 解密
+        let mut sub_keys3 = key_schedule(&key3);
+        sub_keys3.reverse();
+        let sub_keys2 = key_schedule(&key2);
+        let mut sub_keys1 = key_schedule(&key1);
+        sub_keys1.reverse();
 
-        let crypt1 = block_crypt(&sub_keys1);
-        let crypt2 = block_crypt(&sub_keys2);
         let crypt3 = block_crypt(&sub_keys3);
+        let crypt2 = block_crypt(&sub_keys2);
+        let crypt1 = block_crypt(&sub_keys1);
         // 串联三次操作
-        let crypt = |block: &[Bit]| crypt3(&crypt2(&crypt1(block)));
+        let crypt = |block: &[Bit]| crypt1(&crypt2(&crypt3(block)));
 
-        let padded_data = self.padding.pad(input);
+        let result = self.mode.decrypt(input, BLOCK_SIZE, crypt);
 
-        Ok(self.mode.encrypt(&padded_data, BLOCK_SIZE, crypt))
+        Ok(Bytes::new(self.padding.unpad(&result)))
     }
 }

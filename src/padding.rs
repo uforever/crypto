@@ -1,3 +1,5 @@
+use std::fmt::Debug;
+
 use crate::enums::BlockSize;
 
 mod bit_padding;
@@ -10,7 +12,7 @@ pub use no_padding::NoPadding;
 pub use pkcs7_padding::Pkcs7Padding;
 pub use zero_padding::ZeroPadding;
 
-pub trait Padding {
+pub trait Padding: Debug {
     fn pad(&self, data: &[u8]) -> Vec<u8>;
     fn unpad(&self, data: &[u8]) -> Vec<u8>;
 
