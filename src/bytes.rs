@@ -5,7 +5,7 @@ use std::fmt;
 use std::ops::Deref;
 use std::str::FromStr;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct Bytes {
     inner: Vec<u8>,
 }

@@ -8,8 +8,10 @@ pub struct Rc4 {
 }
 
 impl Rc4 {
-    pub fn new(passphrase: Bytes) -> Self {
-        Self { passphrase }
+    pub fn new(passphrase: &[u8]) -> Self {
+        Self {
+            passphrase: Bytes::new(passphrase),
+        }
     }
 }
 

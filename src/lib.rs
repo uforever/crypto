@@ -6,6 +6,7 @@ pub mod enums;
 pub mod hex;
 pub mod hmac;
 pub mod md5;
+pub mod mode;
 pub mod operation;
 pub mod padding;
 pub mod rc4;

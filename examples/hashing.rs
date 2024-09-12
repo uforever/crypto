@@ -49,7 +49,7 @@ fn main() -> Result<()> {
     println!("---- ---- HMAC ---- ----");
     let hmac_input = Bytes::from_str("Hello, world!")?;
     let hmac_key = Bytes::from_str("123456")?;
-    let hmac_op = Hmac::<Sha512>::new(hmac_key);
+    let hmac_op = Hmac::<Sha512>::new(&hmac_key);
     //println!("{:?}", hmac_op);
     let to_base64_op = ToBase64::default();
     let recipe5 = Recipe::new(vec![Box::new(hmac_op), Box::new(to_base64_op)]);
