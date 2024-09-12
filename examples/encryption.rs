@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use crypto::base64::{FromBase64, ToBase64};
 use crypto::bytes::Bytes;
-use crypto::des::{DesDecrypt, DesEncrypt};
+use crypto::des::{DesDecrypt, DesEncrypt, TripleDesEncrypt};
 use crypto::mode::{Cbc, Ecb};
 use crypto::padding::{Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
@@ -62,6 +62,15 @@ fn main() -> Result<()> {
     ]);
     let des_cbc_decrypt_result = recipe5.bake(&des_cbc_encrypt_result)?;
     println!("{}", des_cbc_decrypt_result);
+
+    let triple_des_key = Bytes::from_str("1234567887654321")?;
+    let triple_des_encrypt = TripleDesEncrypt::<_, Pkcs7Padding>::new(&triple_des_key, Ecb);
+    let recipe6 = Recipe::new(vec![
+        Box::new(triple_des_encrypt),
+        Box::new(ToBase64::default()),
+    ]);
+    let triple_des_encrypt_result = recipe6.bake(&des_input)?;
+    println!("{}", triple_des_encrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 

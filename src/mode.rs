@@ -10,7 +10,7 @@ mod ecb;
 pub use cbc::Cbc;
 pub use ecb::Ecb;
 
-pub trait Mode: Debug {
+pub trait Mode: Clone + Debug {
     fn decrypt(
         &self,
         input: &[u8],
