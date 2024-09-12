@@ -1,6 +1,6 @@
 use crate::bits::Bits;
 use crate::bytes::Bytes;
-use crate::des::{block_crypt, generate_sub_keys};
+use crate::des::{block_crypt, key_schedule};
 use crate::enums::BlockSize;
 use crate::operation::Operation;
 use crate::padding::Padding;
@@ -25,7 +25,7 @@ impl<T: Padding> DesEncrypt<T> {
 
 impl<T: Padding> Operation for DesEncrypt<T> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
-        let sub_keys = generate_sub_keys(&self.key);
+        let sub_keys = key_schedule(&self.key);
 
         // 分块
         // 输入

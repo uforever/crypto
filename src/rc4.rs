@@ -38,10 +38,10 @@ fn ksa(key: &[u8]) -> [u8; 256] {
     let mut s_box: [u8; 256] = std::array::from_fn(|i| i as u8);
 
     let mut j: usize = 0;
-    (0..256).for_each(|i| {
+    for i in 0..256 {
         j = (j + s_box[i] as usize + key[i % key_length] as usize) % 256;
         s_box.swap(i, j);
-    });
+    }
 
     s_box
 }
