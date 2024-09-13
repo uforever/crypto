@@ -35,6 +35,8 @@ impl<M: Mode, P: Padding> Operation for DesEncrypt<M, P> {
         // 填充
         let padded_data = self.padding.pad(input);
 
-        Ok(self.mode.encrypt(&padded_data, BLOCK_SIZE, block_encrypt))
+        Ok(self
+            .mode
+            .bits_encrypt(&padded_data, BLOCK_SIZE, block_encrypt))
     }
 }

@@ -59,6 +59,6 @@ impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
 
         let padded_data = self.padding.pad(input);
 
-        Ok(self.mode.encrypt(&padded_data, BLOCK_SIZE, crypt))
+        Ok(self.mode.bits_encrypt(&padded_data, BLOCK_SIZE, crypt))
     }
 }

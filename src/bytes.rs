@@ -1,5 +1,5 @@
 use std::fmt;
-use std::ops::Deref;
+use std::ops::{BitXor, Deref};
 use std::str::FromStr;
 
 use crate::bits::Bits;
@@ -21,6 +21,31 @@ impl Bytes {
 
     pub fn to_bits(&self) -> Bits {
         Bits::from(self.deref())
+    }
+
+    pub fn align(&self, len: usize, value: u8) -> Self {
+        let mut v = self.to_vec();
+        v.reverse();
+        v.resize(len, value);
+        v.reverse();
+        Self::new(v)
+    }
+
+    pub fn xor(&self, other: &Self) -> Self {
+        self ^ other
+    }
+
+    pub fn permutation(&self, permuted_choice: &[usize]) -> Self {
+        let output_len = permuted_choice.len();
+        let mut output = Vec::with_capacity(output_len);
+
+        for i in permuted_choice {
+            output.push(match self.get(*i) {
+                Some(byte) => *byte,
+                None => 0,
+            });
+        }
+        Self::new(output)
     }
 }
 
@@ -75,5 +100,22 @@ impl FromStr for Bytes {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(Self::new(s.as_bytes()))
+    }
+}
+
+impl<'a> BitXor<&'a Bytes> for &'a Bytes {
+    type Output = Bytes;
+
+    fn bitxor(self, rhs: &'a Bytes) -> Self::Output {
+        let max_len = self.len().max(rhs.len());
+        let aligned_self = self.align(max_len, 0);
+        let aligned_rhs = rhs.align(max_len, 0);
+
+        let mut result = Vec::with_capacity(max_len);
+        for i in 0..max_len {
+            result.push(aligned_self[i] ^ aligned_rhs[i]);
+        }
+
+        Self::Output::new(result)
     }
 }

@@ -15,7 +15,7 @@ impl Cbc {
 }
 
 impl Mode for Cbc {
-    fn decrypt(
+    fn bits_decrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
@@ -41,7 +41,7 @@ impl Mode for Cbc {
         Bytes::new(output)
     }
 
-    fn encrypt(
+    fn bits_encrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
@@ -63,6 +63,47 @@ impl Mode for Cbc {
             output.extend_from_slice(&vector.to_bytes());
         }
 
+        Bytes::new(output)
+    }
+
+    fn bytes_decrypt(
+        &self,
+        input: &[u8],
+        block_size: BlockSize,
+        block_decrypt: impl Fn(&[u8]) -> Bytes,
+    ) -> Bytes {
+        let block_size: usize = block_size.into();
+        let mut iv = self.iv.to_vec();
+        iv.resize(block_size, 0);
+        let mut vector = Bytes::new(iv);
+
+        let mut output = Vec::with_capacity(input.len());
+        for chunk in input.chunks(block_size) {
+            let decrypted_block = block_decrypt(chunk);
+            let plain = decrypted_block.xor(&vector);
+            vector = Bytes::new(chunk);
+            output.extend_from_slice(&plain);
+        }
+        Bytes::new(output)
+    }
+
+    fn bytes_encrypt(
+        &self,
+        input: &[u8],
+        block_size: BlockSize,
+        block_encrypt: impl Fn(&[u8]) -> Bytes,
+    ) -> Bytes {
+        let block_size: usize = block_size.into();
+        let mut iv = self.iv.to_vec();
+        iv.resize(block_size, 0);
+        let mut vector = Bytes::new(iv);
+
+        let mut output = Vec::with_capacity(input.len());
+        for chunk in input.chunks(block_size) {
+            let block = Bytes::new(chunk);
+            vector = block_encrypt(&block.xor(&vector));
+            output.extend_from_slice(&vector);
+        }
         Bytes::new(output)
     }
 }

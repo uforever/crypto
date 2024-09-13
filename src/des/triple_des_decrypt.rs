@@ -58,7 +58,7 @@ impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
         // 串联三次操作
         let crypt = |block: &[Bit]| crypt1(&crypt2(&crypt3(block)));
 
-        let result = self.mode.decrypt(input, BLOCK_SIZE, crypt);
+        let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
 
         Ok(Bytes::new(self.padding.unpad(&result)))
     }

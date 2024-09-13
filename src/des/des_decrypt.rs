@@ -31,7 +31,7 @@ impl<M: Mode, P: Padding> Operation for DesDecrypt<M, P> {
         sub_keys.reverse();
         let block_decrypt = block_crypt(&sub_keys);
 
-        let result = self.mode.decrypt(input, BLOCK_SIZE, block_decrypt);
+        let result = self.mode.bits_decrypt(input, BLOCK_SIZE, block_decrypt);
 
         Ok(Bytes::new(self.padding.unpad(&result)))
     }

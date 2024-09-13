@@ -44,7 +44,7 @@ impl Bits {
         v.reverse();
         v.resize(len, value);
         v.reverse();
-        Bits::new(v)
+        Self::new(v)
     }
 
     // 置换
@@ -59,7 +59,7 @@ impl Bits {
                 None => Zero,
             });
         }
-        Bits::new(output)
+        Self::new(output)
     }
 
     // 替换
@@ -69,7 +69,7 @@ impl Bits {
         // get row(bits) from sbox
         let row = &sbox.as_ref()[index];
         // convert row(bits) to Bits
-        Bits::new(row.as_ref())
+        Self::new(row.as_ref())
     }
 }
 
@@ -102,7 +102,7 @@ impl<'a> BitXor<&'a Bits> for &'a Bits {
             output.push(aligned_self[i] ^ aligned_rhs[i]);
         }
 
-        Bits::new(output)
+        Self::Output::new(output)
     }
 }
 
