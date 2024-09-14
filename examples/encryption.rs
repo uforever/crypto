@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use crypto::aes::{AesDecrypt, AesEncrypt};
 use crypto::base64::{FromBase64, ToBase64};
 use crypto::bytes::Bytes;
 use crypto::des::{DesDecrypt, DesEncrypt, TripleDesDecrypt, TripleDesEncrypt};
@@ -82,6 +83,23 @@ fn main() -> Result<()> {
     ]);
     let triple_des_decrypt_result = recipe7.bake(&triple_des_encrypt_result)?;
     println!("{}", triple_des_decrypt_result);
+    println!("---- ---- ---- ---- ----");
+    println!();
+
+    // AES
+    println!("---- ---- AES ---- ----");
+    let aes_input = Bytes::from_str("FooBar")?;
+    let aes_key = Bytes::from_str("01234567890123456789")?;
+    let aes_iv = Bytes::from_str("01234567")?;
+    let aes_op = AesEncrypt::<_, Pkcs7Padding>::new(&aes_key, Cbc::new(&aes_iv));
+    let recipe8 = Recipe::new(vec![Box::new(aes_op), Box::new(ToBase64::default())]);
+    let aes_output = recipe8.bake(&aes_input)?;
+    println!("{:}", aes_output);
+
+    let aes_decrypt = AesDecrypt::<_, Pkcs7Padding>::new(&aes_key, Cbc::new(&aes_iv));
+    let recipe9 = Recipe::new(vec![Box::new(FromBase64::default()), Box::new(aes_decrypt)]);
+    let aes_decrypt_result = recipe9.bake(&aes_output)?;
+    println!("{:}", aes_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 

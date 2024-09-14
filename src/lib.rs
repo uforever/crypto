@@ -1,3 +1,4 @@
+pub mod aes;
 pub mod base64;
 pub mod bits;
 pub mod bytes;

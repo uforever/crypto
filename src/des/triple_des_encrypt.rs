@@ -1,12 +1,10 @@
 use crate::bytes::Bytes;
-use crate::des::{block_crypt, key_schedule};
-use crate::enums::{Bit, BlockSize};
+use crate::des::{block_crypt, key_schedule, BLOCK_SIZE};
+use crate::enums::Bit;
 use crate::mode::Mode;
 use crate::operation::Operation;
 use crate::padding::Padding;
 use crate::types::Result;
-
-const BLOCK_SIZE: BlockSize = BlockSize::Bytes8;
 
 #[derive(Debug)]
 pub struct TripleDesEncrypt<M: Mode, P: Padding> {

@@ -1,6 +1,7 @@
 use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::Bit::{self, One, Zero};
+use crate::enums::BlockSize;
 
 mod des_decrypt;
 mod des_encrypt;
@@ -11,6 +12,8 @@ pub use des_decrypt::DesDecrypt;
 pub use des_encrypt::DesEncrypt;
 pub use triple_des_decrypt::TripleDesDecrypt;
 pub use triple_des_encrypt::TripleDesEncrypt;
+
+const BLOCK_SIZE: BlockSize = BlockSize::Bytes8;
 
 // initial permutation
 const IP: [usize; 64] = [
