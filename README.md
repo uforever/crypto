@@ -50,3 +50,6 @@
 
 `Cbc`,
 
+## 使用方式
+
+参考 examples 目录中[编解码](examples/encoding.rs)、[哈希](examples/hashing.rs)、[填充/去填充](examples/padding.rs)、[加解密](examples/encryption.rs)相关的代码
