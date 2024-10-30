@@ -10,6 +10,8 @@
 
 ## 特点
 
+不依赖于任何第三方库
+
 对于 DES、AES 等算法 , 支持非标准长度的密钥 , 兼容 [crypto-js](https://github.com/brix/crypto-js)
 
 模块化的 填充方式( `Padding` ) 和 加密模式( `Mode` ) 设计 , 便于扩展
