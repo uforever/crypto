@@ -15,4 +15,7 @@ name = "hashing"
 [[example]]
 name = "padding"
 
+[[example]]
+name = "register"
+
 [dependencies]
