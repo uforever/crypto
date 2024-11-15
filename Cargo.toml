@@ -18,4 +18,12 @@ name = "padding"
 [[example]]
 name = "register"
 
+[[example]]
+name = "crackme001"
+path = "examples/crackmes/crackme001.rs"
+
+[[example]]
+name = "crackme005"
+path = "examples/crackmes/crackme005.rs"
+
 [dependencies]
