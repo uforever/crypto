@@ -5,7 +5,7 @@ use crypto::bytes::Bytes;
 use crypto::enums::Case;
 use crypto::hex::ToHex;
 use crypto::recipe::Recipe;
-use crypto::rot::Rot;
+use crypto::rot13::Rot13;
 use crypto::types::Result;
 
 fn main() -> Result<()> {
@@ -31,7 +31,7 @@ fn main() -> Result<()> {
     // 进行ToHex变换
     // 再进行一次凯撒密码 位移为12
     let to_hex_op = ToHex::new("", "", Case::Upper);
-    let rot12_op = Rot::new(12);
+    let rot12_op = Rot13::new(12);
     let recipe = Recipe::new(vec![Box::new(to_hex_op), Box::new(rot12_op)]);
     let result2 = recipe.bake(&Bytes::new(result1))?;
 

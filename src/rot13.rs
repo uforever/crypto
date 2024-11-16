@@ -3,23 +3,23 @@ use crate::operation::Operation;
 use crate::types::Result;
 
 #[derive(Debug)]
-pub struct Rot {
+pub struct Rot13 {
     pub shift: u8,
 }
 
-impl Rot {
+impl Rot13 {
     pub fn new(shift: u8) -> Self {
         Self { shift: shift % 26 }
     }
 }
 
-impl Default for Rot {
+impl Default for Rot13 {
     fn default() -> Self {
         Self::new(13)
     }
 }
 
-impl Operation for Rot {
+impl Operation for Rot13 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         if self.shift == 0 {
             return Ok(Bytes::new(input));

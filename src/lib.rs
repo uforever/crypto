@@ -12,7 +12,7 @@ pub mod operation;
 pub mod padding;
 pub mod rc4;
 pub mod recipe;
-pub mod rot;
+pub mod rot13;
 pub mod sha1;
 pub mod sha2;
 pub mod types;
