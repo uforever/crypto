@@ -5,6 +5,8 @@ use crypto::bytes::Bytes;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
 
+// 简单注册机编写示例
+// 更多例子参考crackmes目录下的内容
 fn main() -> Result<()> {
     // 提示用户输入
     print!("Input: ");
