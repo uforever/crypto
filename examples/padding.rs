@@ -1,12 +1,10 @@
-use std::str::FromStr;
-
 use crypto::bytes::Bytes;
 use crypto::enums::{BlockSize, Endian};
 use crypto::padding::{BitPadding, Padding as _, Pkcs7Padding, ZeroPadding};
 use crypto::types::Result;
 
 fn main() -> Result<()> {
-    let padding_input = Bytes::from_str("123456")?;
+    let padding_input = Bytes::new("123456".as_bytes());
     println!("{:?}", padding_input.as_ref());
 
     // Bit Padding

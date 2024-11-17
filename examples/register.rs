@@ -1,5 +1,4 @@
 use std::io::{self, Write};
-use std::str::FromStr;
 
 use crypto::base64::ToBase64;
 use crypto::bytes::Bytes;
@@ -57,7 +56,7 @@ fn main() -> Result<()> {
         Ok(_) => {
             // 去掉输入字符串末尾的换行符
             let input = input.trim();
-            let input_bytes = Bytes::from_str(input)?;
+            let input_bytes = Bytes::new(input.as_bytes());
 
             let mut output: Vec<u8> = Vec::with_capacity(input.len());
 

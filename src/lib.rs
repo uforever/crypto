@@ -15,6 +15,7 @@ pub mod recipe;
 pub mod rot13;
 pub mod sha1;
 pub mod sha2;
+pub mod tea;
 pub mod types;
 
 pub fn add(left: u64, right: u64) -> u64 {

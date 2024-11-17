@@ -1,10 +1,8 @@
 use std::fmt;
 use std::ops::{BitXor, Deref};
-use std::str::FromStr;
 
 use crate::bits::Bits;
 use crate::enums::Bit;
-use crate::types::Error;
 
 #[derive(Clone, Default)]
 pub struct Bytes {
@@ -92,14 +90,6 @@ impl From<&[Bit]> for Bytes {
             bytes.push(Bits::new(chunk).to_usize() as u8);
         }
         Self::new(bytes)
-    }
-}
-
-impl FromStr for Bytes {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self::new(s.as_bytes()))
     }
 }
 

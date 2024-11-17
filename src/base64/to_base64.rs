@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::base64::alphabet::Alphabet;
 use crate::bytes::Bytes;
 use crate::operation::Operation;
@@ -46,6 +44,6 @@ impl Operation for ToBase64 {
             }
         }
 
-        Bytes::from_str(&base64_string)
+        Ok(Bytes::new(base64_string.as_bytes()))
     }
 }

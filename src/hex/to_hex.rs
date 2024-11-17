@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::bytes::Bytes;
 use crate::enums::Case;
 use crate::operation::Operation;
@@ -33,6 +31,6 @@ impl Operation for ToHex {
             })
             .collect::<Vec<String>>()
             .join(&self.delimiter);
-        Bytes::from_str(&hex_string)
+        Ok(Bytes::new(hex_string.as_bytes()))
     }
 }

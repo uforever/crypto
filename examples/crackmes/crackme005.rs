@@ -1,5 +1,4 @@
 use std::io::{self, Write};
-use std::str::FromStr;
 
 use crypto::bytes::Bytes;
 use crypto::enums::Case;
@@ -14,7 +13,7 @@ fn main() -> Result<()> {
 
     let mut username = String::new();
     io::stdin().read_line(&mut username)?;
-    let username_bytes = Bytes::from_str(username.trim())?;
+    let username_bytes = Bytes::new(username.trim().as_bytes());
     let username_len = username_bytes.len();
 
     // 获取输入长度len 作为循环变量u32的从初始值

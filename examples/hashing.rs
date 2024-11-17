@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crypto::base64::ToBase64;
 use crypto::bytes::Bytes;
 use crypto::hmac::Hmac;
@@ -14,7 +12,7 @@ fn main() -> Result<()> {
     // MD5
     println!("---- ---- MD5 ---- ----");
     //let md5_input = Bytes::default();
-    let md5_input = Bytes::from_str("123456")?;
+    let md5_input = Bytes::new(b"123456".as_ref());
     let recipe1 = Recipe::new(vec![Box::new(Md5)]);
     let md5_output = recipe1.bake(&md5_input)?;
     println!("{:?}", md5_output);
@@ -23,7 +21,7 @@ fn main() -> Result<()> {
 
     // SHA1
     println!("---- ---- SHA1 ---- ----");
-    let sha1_input = Bytes::from_str("123456")?;
+    let sha1_input = Bytes::new("123456".as_bytes());
     let sha1_op = Sha1::default();
     //println!("{:?}", sha1_op);
     let recipe2 = Recipe::new(vec![Box::new(sha1_op)]);
@@ -38,7 +36,7 @@ fn main() -> Result<()> {
     let recipe3 = Recipe::new(vec![Box::new(Sha256)]);
     let sha256_output = recipe3.bake(&sha256_input)?;
     println!("{:?}", sha256_output);
-    let sha512_input = Bytes::from_str("123456")?;
+    let sha512_input = Bytes::new("123456".as_bytes());
     let recipe4 = Recipe::new(vec![Box::new(Sha512)]);
     let sha512_output = recipe4.bake(&sha512_input)?;
     println!("{:?}", sha512_output);
@@ -47,8 +45,8 @@ fn main() -> Result<()> {
 
     // HMAC
     println!("---- ---- HMAC ---- ----");
-    let hmac_input = Bytes::from_str("Hello, world!")?;
-    let hmac_key = Bytes::from_str("123456")?;
+    let hmac_input = Bytes::new("Hello, world!".as_bytes());
+    let hmac_key = Bytes::new("123456".as_bytes());
     let hmac_op = Hmac::<Sha512>::new(&hmac_key);
     //println!("{:?}", hmac_op);
     let to_base64_op = ToBase64::default();

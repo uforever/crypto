@@ -1,5 +1,4 @@
 use std::io::{self, Write};
-use std::str::FromStr;
 
 use crypto::bytes::Bytes;
 use crypto::types::Result;
@@ -14,7 +13,7 @@ fn main() -> Result<()> {
     ];
     let mut username = String::new();
     io::stdin().read_line(&mut username)?;
-    let username_bytes = Bytes::from_str(username.trim())?;
+    let username_bytes = Bytes::new(username.trim().as_bytes());
     let username_len = username_bytes.len();
     // key长度16 和username长度 取最大值 较短的循环取用
     // 两者做异或运算 通过取余数 映射到字符A-Z
