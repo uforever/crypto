@@ -6,7 +6,7 @@ use crate::types::Result;
 #[derive(Debug)]
 pub struct XxteaEncrypt {
     pub key: Bytes,
-    pub include_length: bool,
+    pub include_length: bool, // 常见的实现中 输入后添加了一块 32bit的长度
 }
 
 impl XxteaEncrypt {

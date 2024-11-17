@@ -22,6 +22,8 @@
 
 `FromBase64`, `ToBase64`,
 
+`Rot13`,
+
 `Md5`,
 
 `Sha1`,
@@ -31,6 +33,8 @@
 `Hmac`,
 
 `Rc4`,
+
+`XxteaDecrypt`, `XxteaEncrypt`,
 
 `DesDecrypt`, `DesEncrypt`, `TripleDesDecrypt`, `TripleDesEncrypt`,
 

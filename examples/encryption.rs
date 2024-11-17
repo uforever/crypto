@@ -6,7 +6,7 @@ use crypto::mode::{Cbc, Ecb};
 use crypto::padding::{Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
-use crypto::tea::XxteaEncrypt;
+use crypto::tea::{XxteaDecrypt, XxteaEncrypt};
 use crypto::types::Result;
 
 fn main() -> Result<()> {
@@ -106,10 +106,15 @@ fn main() -> Result<()> {
     println!("---- ---- TEA ---- ----");
     let xxtea_input = Bytes::new([1, 0, 0, 0, 2, 0, 0].as_ref());
     let xxtea_key = Bytes::new([2, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0].as_ref());
-    let xxtea_encrypt = XxteaEncrypt::new(xxtea_key, false);
+    let xxtea_encrypt = XxteaEncrypt::new(xxtea_key.clone(), false);
     let recipe10 = Recipe::new(vec![Box::new(xxtea_encrypt)]);
     let xxtea_output = recipe10.bake(&xxtea_input)?;
     println!("{}", xxtea_output);
+
+    let xxtea_decrypt = XxteaDecrypt::new(xxtea_key, false);
+    let recipe11 = Recipe::new(vec![Box::new(xxtea_decrypt)]);
+    let xxtea_decrypt_result = recipe11.bake(&xxtea_output)?;
+    println!("{:?}", xxtea_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 
