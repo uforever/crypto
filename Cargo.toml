@@ -30,4 +30,8 @@ path = "examples/crackmes/crackme005.rs"
 name = "crackme006"
 path = "examples/crackmes/crackme006.rs"
 
+[[example]]
+name = "crackme009"
+path = "examples/crackmes/crackme009.rs"
+
 [dependencies]
