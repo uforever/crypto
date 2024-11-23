@@ -4,8 +4,8 @@ use crate::enums::BlockSize;
 mod aes_decrypt;
 mod aes_encrypt;
 
-pub use aes_decrypt::AesDecrypt;
-pub use aes_encrypt::AesEncrypt;
+pub use aes_decrypt::{inv_mix_columns, inv_shift_rows, inv_sub_bytes, AesDecrypt};
+pub use aes_encrypt::{mix_columns, shift_rows, sub_bytes, AesEncrypt};
 
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes16;
 

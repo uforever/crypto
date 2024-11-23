@@ -127,61 +127,65 @@ impl<M: Mode, P: Padding> Operation for AesDecrypt<M, P> {
     }
 }
 
+pub fn inv_shift_rows(state: &[u8]) -> Bytes {
+    Bytes::new(state).permutation(&ROTATE_INVERSE)
+}
+
+pub fn inv_sub_bytes(state: &[u8]) -> Bytes {
+    let subsituted: Vec<u8> = state
+        .iter()
+        .map(|byte| S_BOX_INVERSE[*byte as usize])
+        .collect::<Vec<u8>>();
+    Bytes::new(subsituted)
+}
+
+pub fn inv_mix_columns(state: &[u8]) -> Bytes {
+    let mut mixed = Vec::with_capacity(BLOCK_SIZE.into());
+    for row in state.chunks(4) {
+        mixed.push(
+            MULT_E[row[0] as usize]
+                ^ MULT_B[row[1] as usize]
+                ^ MULT_D[row[2] as usize]
+                ^ MULT_9[row[3] as usize],
+        );
+        mixed.push(
+            MULT_9[row[0] as usize]
+                ^ MULT_E[row[1] as usize]
+                ^ MULT_B[row[2] as usize]
+                ^ MULT_D[row[3] as usize],
+        );
+        mixed.push(
+            MULT_D[row[0] as usize]
+                ^ MULT_9[row[1] as usize]
+                ^ MULT_E[row[2] as usize]
+                ^ MULT_B[row[3] as usize],
+        );
+        mixed.push(
+            MULT_B[row[0] as usize]
+                ^ MULT_D[row[1] as usize]
+                ^ MULT_9[row[2] as usize]
+                ^ MULT_E[row[3] as usize],
+        );
+    }
+    Bytes::new(mixed)
+}
+
 fn block_decrypt(sub_keys: &[Bytes]) -> impl Fn(&[u8]) -> Bytes + '_ {
     move |block| {
         let mut result = Bytes::new(block);
         let rounds = sub_keys.len() - 1;
 
         result = result.xor(&sub_keys[0]);
-        result = result.permutation(&ROTATE_INVERSE);
-        result = Bytes::new(
-            result
-                .iter()
-                .map(|byte| S_BOX_INVERSE[*byte as usize])
-                .collect::<Vec<u8>>(),
-        );
 
         for sub_key in sub_keys.iter().take(rounds).skip(1) {
+            result = inv_shift_rows(&result);
+            result = inv_sub_bytes(&result);
             result = result.xor(sub_key);
-
-            let mut mixed = Vec::with_capacity(BLOCK_SIZE.into());
-            for row in result.chunks(4) {
-                mixed.push(
-                    MULT_E[row[0] as usize]
-                        ^ MULT_B[row[1] as usize]
-                        ^ MULT_D[row[2] as usize]
-                        ^ MULT_9[row[3] as usize],
-                );
-                mixed.push(
-                    MULT_9[row[0] as usize]
-                        ^ MULT_E[row[1] as usize]
-                        ^ MULT_B[row[2] as usize]
-                        ^ MULT_D[row[3] as usize],
-                );
-                mixed.push(
-                    MULT_D[row[0] as usize]
-                        ^ MULT_9[row[1] as usize]
-                        ^ MULT_E[row[2] as usize]
-                        ^ MULT_B[row[3] as usize],
-                );
-                mixed.push(
-                    MULT_B[row[0] as usize]
-                        ^ MULT_D[row[1] as usize]
-                        ^ MULT_9[row[2] as usize]
-                        ^ MULT_E[row[3] as usize],
-                );
-            }
-
-            result = Bytes::new(mixed).permutation(&ROTATE_INVERSE);
-
-            result = Bytes::new(
-                result
-                    .iter()
-                    .map(|byte| S_BOX_INVERSE[*byte as usize])
-                    .collect::<Vec<u8>>(),
-            );
+            result = inv_mix_columns(&result);
         }
 
+        result = inv_shift_rows(&result);
+        result = inv_sub_bytes(&result);
         result.xor(&sub_keys[rounds])
     }
 }
