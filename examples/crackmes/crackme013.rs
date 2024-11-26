@@ -4,7 +4,7 @@ use crypto::aes::{
     inv_mix_columns, inv_shift_rows, inv_sub_bytes, mix_columns, shift_rows, sub_bytes,
 };
 use crypto::bytes::Bytes;
-use crypto::hex::{FromHex, ToHex};
+use crypto::hex::FromHex;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
 
@@ -68,10 +68,7 @@ fn main() -> Result<()> {
         _ => return Err("Invalid aes_instru".into()),
     };
 
-    let to_hex_op = ToHex::default();
-    let to_hex_recipe = Recipe::new(vec![Box::new(to_hex_op)]);
-    let result_str = to_hex_recipe.bake(&result)?;
-    println!("{}", result_str);
+    println!("{:?}", result);
 
     Ok(())
 }
