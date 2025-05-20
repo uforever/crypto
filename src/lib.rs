@@ -15,6 +15,7 @@ pub mod recipe;
 pub mod rot13;
 pub mod sha1;
 pub mod sha2;
+pub mod sm3;
 pub mod tea;
 pub mod types;
 

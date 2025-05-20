@@ -6,6 +6,7 @@ use crypto::recipe::Recipe;
 use crypto::sha1::Sha1;
 use crypto::sha2::Sha256;
 use crypto::sha2::Sha512;
+use crypto::sm3::Sm3;
 use crypto::types::Result;
 
 fn main() -> Result<()> {
@@ -53,6 +54,25 @@ fn main() -> Result<()> {
     let recipe5 = Recipe::new(vec![Box::new(hmac_op), Box::new(to_base64_op)]);
     let hmac_output = recipe5.bake(&hmac_input)?;
     println!("{}", hmac_output);
+    println!("---- ---- ---- ---- ----");
+    println!();
+
+    // SM3
+    println!("---- ---- SM3 ---- ----");
+    let sm3_input = Bytes::new("12233344445555500000".as_bytes());
+    let recipe6 = Recipe::new(vec![Box::new(Sm3)]);
+    let sm3_output = recipe6.bake(&sm3_input)?;
+    println!("{:?}", sm3_output);
+
+    let sm3_hmac_input = Bytes::new("3334444".as_bytes());
+    let sm3_hmac_key = Bytes::new(vec![
+        0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22, 0x11,
+        0x00,
+    ]);
+    let sm3_hmac_op = Hmac::<Sm3>::new(&sm3_hmac_key);
+    let recipe7 = Recipe::new(vec![Box::new(sm3_hmac_op)]);
+    let sm3_hmac_output = recipe7.bake(&sm3_hmac_input)?;
+    println!("{:?}", sm3_hmac_output);
     println!("---- ---- ---- ---- ----");
     println!();
 
