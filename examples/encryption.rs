@@ -6,6 +6,7 @@ use crypto::mode::{Cbc, Ecb};
 use crypto::padding::{Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
+use crypto::sm4::Sm4Encrypt;
 use crypto::tea::{XxteaDecrypt, XxteaEncrypt};
 use crypto::types::Result;
 
@@ -115,6 +116,17 @@ fn main() -> Result<()> {
     let recipe11 = Recipe::new(vec![Box::new(xxtea_decrypt)]);
     let xxtea_decrypt_result = recipe11.bake(&xxtea_output)?;
     println!("{:?}", xxtea_decrypt_result);
+    println!("---- ---- ---- ---- ----");
+    println!();
+
+    // SM4
+    println!("---- ---- SM4 ---- ----");
+    let sm4_input = Bytes::new(b"Hello, World!".as_ref());
+    let sm4_key = Bytes::new("1234567890123456".as_bytes());
+    let sm4_encrypt = Sm4Encrypt::<_, Pkcs7Padding>::new(&sm4_key, Ecb);
+    let recipe12 = Recipe::new(vec![Box::new(sm4_encrypt)]);
+    let sm4_output = recipe12.bake(&sm4_input)?;
+    println!("{}", sm4_output);
     println!("---- ---- ---- ---- ----");
     println!();
 
