@@ -10,9 +10,9 @@ pub struct XxteaDecrypt {
 }
 
 impl XxteaDecrypt {
-    pub fn new(key: Bytes, include_length: bool) -> Self {
+    pub fn new(key: &[u8], include_length: bool) -> Self {
         Self {
-            key,
+            key: Bytes::new(key),
             include_length,
         }
     }

@@ -6,7 +6,7 @@ use crypto::mode::{Cbc, Ecb};
 use crypto::padding::{Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
-use crypto::sm4::Sm4Encrypt;
+use crypto::sm4::{Sm4Decrypt, Sm4Encrypt};
 use crypto::tea::{XxteaDecrypt, XxteaEncrypt};
 use crypto::types::Result;
 
@@ -107,12 +107,12 @@ fn main() -> Result<()> {
     println!("---- ---- TEA ---- ----");
     let xxtea_input = Bytes::new([1, 0, 0, 0, 2, 0, 0].as_ref());
     let xxtea_key = Bytes::new([2, 0, 0, 0, 2, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0].as_ref());
-    let xxtea_encrypt = XxteaEncrypt::new(xxtea_key.clone(), false);
+    let xxtea_encrypt = XxteaEncrypt::new(&xxtea_key, false);
     let recipe10 = Recipe::new(vec![Box::new(xxtea_encrypt)]);
     let xxtea_output = recipe10.bake(&xxtea_input)?;
     println!("{}", xxtea_output);
 
-    let xxtea_decrypt = XxteaDecrypt::new(xxtea_key, false);
+    let xxtea_decrypt = XxteaDecrypt::new(&xxtea_key, false);
     let recipe11 = Recipe::new(vec![Box::new(xxtea_decrypt)]);
     let xxtea_decrypt_result = recipe11.bake(&xxtea_output)?;
     println!("{:?}", xxtea_decrypt_result);
@@ -121,12 +121,37 @@ fn main() -> Result<()> {
 
     // SM4
     println!("---- ---- SM4 ---- ----");
-    let sm4_input = Bytes::new(b"Hello, World!".as_ref());
-    let sm4_key = Bytes::new("1234567890123456".as_bytes());
-    let sm4_encrypt = Sm4Encrypt::<_, Pkcs7Padding>::new(&sm4_key, Ecb);
+    let sm4_input = Bytes::new(
+        [
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08,
+            0x08, 0x08,
+        ]
+        .as_ref(),
+    );
+    let sm4_key = Bytes::new(
+        [
+            0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd,
+            0xee, 0xff,
+        ]
+        .as_ref(),
+    );
+    let sm4_iv = Bytes::new(
+        [
+            0xff, 0xee, 0xdd, 0xcc, 0xbb, 0xaa, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33, 0x22,
+            0x11, 0x00,
+        ]
+        .as_ref(),
+    );
+
+    let sm4_encrypt = Sm4Encrypt::<_, Pkcs7Padding>::new(&sm4_key, Cbc::new(&sm4_iv));
     let recipe12 = Recipe::new(vec![Box::new(sm4_encrypt)]);
     let sm4_output = recipe12.bake(&sm4_input)?;
     println!("{}", sm4_output);
+
+    let sm4_decrypt = Sm4Decrypt::<_, Pkcs7Padding>::new(&sm4_key, Cbc::new(&sm4_iv));
+    let recipe13 = Recipe::new(vec![Box::new(sm4_decrypt)]);
+    let sm4_decrypt_result = recipe13.bake(&sm4_output)?;
+    println!("{:?}", sm4_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 

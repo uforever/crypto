@@ -17,7 +17,7 @@ fn main() -> Result<()> {
         ]
         .as_ref(),
     );
-    let xxtea_decrypt = XxteaDecrypt::new(xxtea_key, false);
+    let xxtea_decrypt = XxteaDecrypt::new(&xxtea_key, false);
     let recipe = Recipe::new(vec![Box::new(xxtea_decrypt)]);
     let output_bytes = recipe.bake(&input_bytes)?;
     std::fs::write(output_filename, output_bytes.as_ref())?;

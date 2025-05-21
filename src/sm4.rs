@@ -4,6 +4,7 @@ use crate::enums::BlockSize;
 mod sm4_decrypt;
 mod sm4_encrypt;
 
+pub use sm4_decrypt::Sm4Decrypt;
 pub use sm4_encrypt::Sm4Encrypt;
 
 const ROUNDS: usize = 32;

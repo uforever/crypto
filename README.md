@@ -42,6 +42,8 @@
 
 `AesDecrypt`, `AesEncrypt`,
 
+`Sm4Decrypt`, `Sm4Encrypt`,
+
 ## `Padding`
 
 `BitPadding`,
