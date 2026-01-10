@@ -38,7 +38,7 @@ fn main() -> Result<()> {
     let des_ecb_encrypt_result = recipe2.bake(&des_input)?;
     println!("{}", des_ecb_encrypt_result);
 
-    let des_ecb_decrypt = DesDecrypt::<_, ZeroPadding>::new(&des_ecb_key, Ecb);
+    let des_ecb_decrypt = DesDecrypt::<Ecb, ZeroPadding>::new(&des_ecb_key, Ecb);
     let recipe3 = Recipe::new(vec![
         Box::new(FromBase64::default()),
         Box::new(des_ecb_decrypt),

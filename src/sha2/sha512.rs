@@ -144,14 +144,12 @@ impl Operation for Sha512 {
                     words[i - 16]
                         .wrapping_add(
                             words[i - 15].rotate_right(1)
-                                ^ words[i - 15].rotate_right(8)
-                                ^ words[i - 15] >> 7,
+                                ^ words[i - 15].rotate_right(8) ^ (words[i - 15] >> 7),
                         )
                         .wrapping_add(words[i - 7])
                         .wrapping_add(
                             words[i - 2].rotate_right(19)
-                                ^ words[i - 2].rotate_right(61)
-                                ^ words[i - 2] >> 6,
+                                ^ words[i - 2].rotate_right(61) ^ (words[i - 2] >> 6),
                         )
                 };
 

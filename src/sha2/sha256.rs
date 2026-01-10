@@ -68,14 +68,12 @@ impl Operation for Sha256 {
                     words[i - 16]
                         .wrapping_add(
                             words[i - 15].rotate_right(7)
-                                ^ words[i - 15].rotate_right(18)
-                                ^ words[i - 15] >> 3,
+                                ^ words[i - 15].rotate_right(18) ^ (words[i - 15] >> 3),
                         )
                         .wrapping_add(words[i - 7])
                         .wrapping_add(
                             words[i - 2].rotate_right(17)
-                                ^ words[i - 2].rotate_right(19)
-                                ^ words[i - 2] >> 10,
+                                ^ words[i - 2].rotate_right(19) ^ (words[i - 2] >> 10),
                         )
                 };
 

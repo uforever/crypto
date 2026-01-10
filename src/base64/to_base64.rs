@@ -30,7 +30,7 @@ impl Operation for ToBase64 {
                 0 // padding
             };
             let offset = (encoded_bits_count % 8) as u8;
-            let combined: u16 = (lower_byte as u16) << 8 | (upper_byte as u16);
+            let combined: u16 = ((lower_byte as u16) << 8) | (upper_byte as u16);
             let index_of_64 =
                 ((combined & (0b1111110000000000u16 >> offset)) >> (10 - offset)) as usize;
             base64_string.push(self.alphabet.charset[index_of_64] as char);
