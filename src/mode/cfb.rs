@@ -3,26 +3,26 @@ use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
 
-// 密码分组链接模式
+// 密码反馈模式
 // 加密过程不支持并行 解密过程支持并行
-// 不支持无填充
+// 支持无填充
 #[derive(Clone, Debug)]
-pub struct Cbc {
+pub struct Cfb {
     pub iv: Bytes,
 }
 
-impl Cbc {
+impl Cfb {
     pub fn new(iv: &[u8]) -> Self {
         Self { iv: Bytes::new(iv) }
     }
 }
 
-impl Mode for Cbc {
+impl Mode for Cfb {
     fn bits_decrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
-        block_decrypt: impl Fn(&[Bit]) -> Bits,
+        block_encrypt: impl Fn(&[Bit]) -> Bits,
     ) -> Bytes {
         let block_size: usize = block_size.into();
         // inintialization vector
@@ -35,10 +35,10 @@ impl Mode for Cbc {
 
         for chunk in input.chunks(block_size) {
             let block: Bits = chunk.into();
-            let decrypted_block = block_decrypt(&block);
-            let plain = decrypted_block.xor(&vector).to_bytes();
+            let plain: Bits = block.xor(&block_encrypt(&vector));
+            // 上一组密文作为下一个向量
             vector = block;
-            output.extend_from_slice(&plain);
+            output.extend_from_slice(&plain.to_bytes());
         }
 
         Bytes::new(output)
@@ -62,7 +62,8 @@ impl Mode for Cbc {
 
         for chunk in input.chunks(block_size) {
             let block: Bits = chunk.into();
-            vector = block_encrypt(&block.xor(&vector));
+            // 密文作为下一个向量
+            vector = block.xor(&block_encrypt(&vector));
             output.extend_from_slice(&vector.to_bytes());
         }
 
@@ -73,7 +74,7 @@ impl Mode for Cbc {
         &self,
         input: &[u8],
         block_size: BlockSize,
-        block_decrypt: impl Fn(&[u8]) -> Bytes,
+        block_encrypt: impl Fn(&[u8]) -> Bytes,
     ) -> Bytes {
         let block_size: usize = block_size.into();
         let mut iv = self.iv.to_vec();
@@ -82,10 +83,10 @@ impl Mode for Cbc {
 
         let mut output = Vec::with_capacity(input.len());
         for chunk in input.chunks(block_size) {
-            let decrypted_block = block_decrypt(chunk);
-            let plain = decrypted_block.xor(&vector);
-            vector = Bytes::new(chunk);
-            output.extend_from_slice(&plain);
+            let block = Bytes::new(chunk);
+            output.extend_from_slice(&block.xor(&block_encrypt(&vector)));
+            // 上一组密文作为下一个向量
+            vector = block;
         }
         Bytes::new(output)
     }
@@ -104,7 +105,8 @@ impl Mode for Cbc {
         let mut output = Vec::with_capacity(input.len());
         for chunk in input.chunks(block_size) {
             let block = Bytes::new(chunk);
-            vector = block_encrypt(&block.xor(&vector));
+            // 密文作为下一个向量
+            vector = block.xor(&block_encrypt(&vector));
             output.extend_from_slice(&vector);
         }
         Bytes::new(output)

@@ -5,10 +5,18 @@ use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 
 mod cbc;
+mod cfb;
+mod ctr;
 mod ecb;
+mod gcm;
+mod ofb;
 
 pub use cbc::Cbc;
+pub use cfb::Cfb;
+pub use ctr::Ctr;
 pub use ecb::Ecb;
+pub use gcm::Gcm;
+pub use ofb::Ofb;
 
 pub trait Mode: Clone + Debug {
     fn bits_decrypt(

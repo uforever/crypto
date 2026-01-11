@@ -25,6 +25,37 @@ impl Bits {
         self ^ other
     }
 
+    // 自增1 不关心溢出
+    pub fn inc(&mut self) {
+        for i in (0..self.len()).rev() {
+            match self.inner[i] {
+                Zero => {
+                    self.inner[i] = One;
+                    break;
+                }
+                One => {
+                    self.inner[i] = Zero;
+                }
+            }
+        }
+    }
+
+    // 32位自增 不关心溢出
+    pub fn inc32(&mut self) {
+        let len = self.len();
+        for i in (len - 32..len).rev() {
+            match self.inner[i] {
+                Zero => {
+                    self.inner[i] = One;
+                    break;
+                }
+                One => {
+                    self.inner[i] = Zero;
+                }
+            }
+        }
+    }
+
     // bits to number
     pub fn to_usize(&self) -> usize {
         let mut result = 0usize;
@@ -90,16 +121,13 @@ impl fmt::Debug for Bits {
 impl<'a> BitXor<&'a Bits> for &'a Bits {
     type Output = Bits;
 
+    // xor 统一改为循环异或
     fn bitxor(self, rhs: &'a Bits) -> Self::Output {
-        // align bits to the same length
-        let max_len = self.len().max(rhs.len());
-        let aligned_self = self.align(max_len, Zero);
-        let aligned_rhs = rhs.align(max_len, Zero);
-
         // bit xor
-        let mut output = Vec::with_capacity(max_len);
-        for i in 0..max_len {
-            output.push(aligned_self[i] ^ aligned_rhs[i]);
+        let length = self.len();
+        let mut output = Vec::with_capacity(length);
+        for i in 0..length {
+            output.push(self[i] ^ rhs[i % length]);
         }
 
         Self::Output::new(output)

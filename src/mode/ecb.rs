@@ -3,6 +3,9 @@ use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
 
+// 电子密码本
+// 加解密均支持并行
+// 不支持无填充
 #[derive(Clone, Copy, Debug)]
 pub struct Ecb;
 

@@ -33,6 +33,31 @@ impl Bytes {
         self ^ other
     }
 
+    // 自增1 不关心溢出
+    pub fn inc(&mut self) {
+        for i in (0..self.len()).rev() {
+            if self.inner[i] == 0xff {
+                self.inner[i] = 0x00;
+            } else {
+                self.inner[i] += 1;
+                break;
+            }
+        }
+    }
+
+    // 32位自增 不关心溢出
+    pub fn inc32(&mut self) {
+        let len = self.len();
+        for i in (len - 4..len).rev() {
+            if self.inner[i] == 0xff {
+                self.inner[i] = 0x00;
+            } else {
+                self.inner[i] += 1;
+                break;
+            }
+        }
+    }
+
     pub fn permutation(&self, permuted_choice: &[usize]) -> Self {
         let output_len = permuted_choice.len();
         let mut output = Vec::with_capacity(output_len);
@@ -96,14 +121,13 @@ impl From<&[Bit]> for Bytes {
 impl<'a> BitXor<&'a Bytes> for &'a Bytes {
     type Output = Bytes;
 
+    // xor 统一改为循环异或
     fn bitxor(self, rhs: &'a Bytes) -> Self::Output {
-        let max_len = self.len().max(rhs.len());
-        let aligned_self = self.align(max_len, 0);
-        let aligned_rhs = rhs.align(max_len, 0);
+        let length = self.len();
 
-        let mut result = Vec::with_capacity(max_len);
-        for i in 0..max_len {
-            result.push(aligned_self[i] ^ aligned_rhs[i]);
+        let mut result = Vec::with_capacity(length);
+        for i in 0..length {
+            result.push(self[i] ^ rhs[i % length]);
         }
 
         Self::Output::new(result)

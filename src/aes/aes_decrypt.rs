@@ -1,3 +1,4 @@
+use crate::aes::aes_encrypt::block_encrypt;
 use crate::aes::{key_schedule, BLOCK_SIZE};
 use crate::bytes::Bytes;
 use crate::mode::Mode;
@@ -119,11 +120,20 @@ impl<M: Mode, P: Padding> AesDecrypt<M, P> {
 impl<M: Mode, P: Padding> Operation for AesDecrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut sub_keys = key_schedule(&self.key);
-        sub_keys.reverse();
-        let decrypt_func = block_decrypt(&sub_keys);
-        let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, decrypt_func);
 
-        Ok(Bytes::new(self.padding.unpad(&result)))
+        let mode_name = std::any::type_name_of_val(&self.mode);
+        if mode_name.contains("Ecb") || mode_name.contains("Cbc") {
+            sub_keys.reverse();
+            let decrypt_func = block_decrypt(&sub_keys);
+            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, decrypt_func);
+
+            Ok(Bytes::new(self.padding.unpad(&result)))
+        } else {
+            let encrypt_func = block_encrypt(&sub_keys);
+            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, encrypt_func);
+
+            Ok(Bytes::new(self.padding.unpad(&result)))
+        }
     }
 }
 

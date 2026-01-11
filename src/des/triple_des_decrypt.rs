@@ -43,21 +43,32 @@ impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
             )
         };
 
-        // 解密 -> 加密 -> 解密
-        let mut sub_keys3 = key_schedule(&key3);
-        sub_keys3.reverse();
-        let sub_keys2 = key_schedule(&key2);
         let mut sub_keys1 = key_schedule(&key1);
-        sub_keys1.reverse();
+        let mut sub_keys2 = key_schedule(&key2);
+        let mut sub_keys3 = key_schedule(&key3);
 
-        let crypt3 = block_crypt(&sub_keys3);
-        let crypt2 = block_crypt(&sub_keys2);
-        let crypt1 = block_crypt(&sub_keys1);
-        // 串联三次操作
-        let crypt = |block: &[Bit]| crypt1(&crypt2(&crypt3(block)));
-
-        let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
-
-        Ok(Bytes::new(self.padding.unpad(&result)))
+        let mode_name = std::any::type_name_of_val(&self.mode);
+        if mode_name.contains("Ecb") || mode_name.contains("Cbc") {
+            // 解密 -> 加密 -> 解密
+            sub_keys3.reverse();
+            sub_keys1.reverse();
+            let crypt3 = block_crypt(&sub_keys3);
+            let crypt2 = block_crypt(&sub_keys2);
+            let crypt1 = block_crypt(&sub_keys1);
+            // 串联三次操作
+            let crypt = |block: &[Bit]| crypt1(&crypt2(&crypt3(block)));
+            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
+            Ok(Bytes::new(self.padding.unpad(&result)))
+        } else {
+            // 加密 -> 解密 -> 加密
+            sub_keys2.reverse();
+            let crypt1 = block_crypt(&sub_keys1);
+            let crypt2 = block_crypt(&sub_keys2);
+            let crypt3 = block_crypt(&sub_keys3);
+            // 串联三次操作
+            let crypt = |block: &[Bit]| crypt3(&crypt2(&crypt1(block)));
+            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
+            Ok(Bytes::new(self.padding.unpad(&result)))
+        }
     }
 }

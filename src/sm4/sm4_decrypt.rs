@@ -28,7 +28,10 @@ impl<M: Mode, P: Padding> Operation for Sm4Decrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         // SM4的解密过程用到的轮密钥是加密过程的轮密钥的逆序
         let mut round_keys = key_schedule(&self.key);
-        round_keys.reverse();
+        let mode_name = std::any::type_name_of_val(&self.mode);
+        if mode_name.contains("Ecb") || mode_name.contains("Cbc") {
+            round_keys.reverse();
+        }
         let decrypt_func = block_crypt(&round_keys);
         let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, decrypt_func);
 

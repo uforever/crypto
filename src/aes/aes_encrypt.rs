@@ -1,4 +1,4 @@
-use crate::aes::{key_schedule, BLOCK_SIZE, S_BOX_FORWARD};
+ use crate::aes::{key_schedule, BLOCK_SIZE, S_BOX_FORWARD};
 use crate::bytes::Bytes;
 use crate::mode::Mode;
 use crate::operation::Operation;
@@ -96,7 +96,7 @@ pub fn mix_columns(state: &[u8]) -> Bytes {
     Bytes::new(mixed)
 }
 
-fn block_encrypt(sub_keys: &[Bytes]) -> impl Fn(&[u8]) -> Bytes + '_ {
+pub fn block_encrypt(sub_keys: &[Bytes]) -> impl Fn(&[u8]) -> Bytes + '_ {
     move |block| {
         let mut result = Bytes::new(block);
 

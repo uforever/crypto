@@ -2,8 +2,9 @@ use crypto::aes::{AesDecrypt, AesEncrypt};
 use crypto::base64::{FromBase64, ToBase64};
 use crypto::bytes::Bytes;
 use crypto::des::{DesDecrypt, DesEncrypt, TripleDesDecrypt, TripleDesEncrypt};
-use crypto::mode::{Cbc, Ecb};
-use crypto::padding::{Pkcs7Padding, ZeroPadding};
+use crypto::hex::{FromHex, ToHex};
+use crypto::mode::{Cbc, Cfb, Ctr, Ecb, Gcm, Ofb};
+use crypto::padding::{NoPadding, Pkcs7Padding, ZeroPadding};
 use crypto::rc4::Rc4;
 use crypto::recipe::Recipe;
 use crypto::sm4::{Sm4Decrypt, Sm4Encrypt};
@@ -27,7 +28,7 @@ fn main() -> Result<()> {
 
     // DES
     println!("---- ---- DES ---- ----");
-    let des_input = Bytes::new(b"Hello, World!".as_ref());
+    let des_input = Bytes::new(b"Hello, World!Hello, World!Hello, World!".as_ref());
 
     let des_ecb_key = Bytes::new("12345678".as_bytes());
     let des_ecb_encrypt = DesEncrypt::<Ecb, ZeroPadding>::new(&des_ecb_key, Ecb);
@@ -45,6 +46,20 @@ fn main() -> Result<()> {
     ]);
     let des_ecb_decrypt_result = recipe3.bake(&des_ecb_encrypt_result)?;
     println!("{}", des_ecb_decrypt_result);
+
+    let des_cfb_iv = Bytes::new("87654321".as_bytes());
+    let des_cfb_encrypt = DesEncrypt::<_, NoPadding>::new(&des_ecb_key, Cfb::new(&des_cfb_iv));
+    let recipe_cfbencrypt =
+        Recipe::new(vec![Box::new(des_cfb_encrypt), Box::new(ToHex::default())]);
+    let des_cfb_encrypt_result = recipe_cfbencrypt.bake(&des_input)?;
+    println!("{}", des_cfb_encrypt_result);
+    let des_cfb_decrypt = DesDecrypt::<_, NoPadding>::new(&des_ecb_key, Cfb::new(&des_cfb_iv));
+    let recipe_cfbdecrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(des_cfb_decrypt),
+    ]);
+    let des_cfb_decrypt_result = recipe_cfbdecrypt.bake(&des_cfb_encrypt_result)?;
+    println!("{}", des_cfb_decrypt_result);
 
     let des_cbc_key = Bytes::new("321".as_bytes());
     let des_cbc_iv = Bytes::new("123".as_bytes());
@@ -83,12 +98,50 @@ fn main() -> Result<()> {
     ]);
     let triple_des_decrypt_result = recipe7.bake(&triple_des_encrypt_result)?;
     println!("{}", triple_des_decrypt_result);
+
+    let triple_des_ofb_encrypt =
+        TripleDesEncrypt::<_, NoPadding>::new(&triple_des_key, Ofb::new(&triple_des_iv));
+    let recipe_ofb_3des_encrypt = Recipe::new(vec![
+        Box::new(triple_des_ofb_encrypt),
+        Box::new(ToHex::default()),
+    ]);
+    let triple_des_ofb_encrypt_result = recipe_ofb_3des_encrypt.bake(&des_input)?;
+    println!("{}", triple_des_ofb_encrypt_result);
+    let triple_des_ofb_decrypt =
+        TripleDesDecrypt::<_, NoPadding>::new(&triple_des_key, Ofb::new(&triple_des_iv));
+    let recipe_ofb_3des_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(triple_des_ofb_decrypt),
+    ]);
+    let triple_des_ofb_decrypt_result =
+        recipe_ofb_3des_decrypt.bake(&triple_des_ofb_encrypt_result)?;
+    println!("{}", triple_des_ofb_decrypt_result);
+
+    let triple_des_ctr_encrypt =
+        TripleDesEncrypt::<_, NoPadding>::new(&triple_des_key, Ctr::new(&triple_des_iv));
+    let recipe_ctr_3des_encrypt = Recipe::new(vec![
+        Box::new(triple_des_ctr_encrypt),
+        Box::new(ToHex::default()),
+    ]);
+    let triple_des_ctr_encrypt_result = recipe_ctr_3des_encrypt.bake(&des_input)?;
+    println!("{}", triple_des_ctr_encrypt_result);
+    let triple_des_ctr_decrypt =
+        TripleDesDecrypt::<_, NoPadding>::new(&triple_des_key, Ctr::new(&triple_des_iv));
+    let recipe_ctr_3des_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(triple_des_ctr_decrypt),
+    ]);
+    let triple_des_ctr_decrypt_result =
+        recipe_ctr_3des_decrypt.bake(&triple_des_ctr_encrypt_result)?;
+    println!("{}", triple_des_ctr_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 
     // AES
     println!("---- ---- AES ---- ----");
-    let aes_input = Bytes::new("FooBar".as_bytes());
+    let aes_input = Bytes::new(
+        "FooBar Lorem ipsum dolor sit amet ex cupidatat culpa ullamco et eiusmod eu".as_bytes(),
+    );
     let aes_key = Bytes::new("01234567890123456789".as_bytes());
     let aes_iv = Bytes::new("01234567".as_bytes());
     let aes_op = AesEncrypt::<_, Pkcs7Padding>::new(&aes_key, Cbc::new(&aes_iv));
@@ -100,6 +153,54 @@ fn main() -> Result<()> {
     let recipe9 = Recipe::new(vec![Box::new(FromBase64::default()), Box::new(aes_decrypt)]);
     let aes_decrypt_result = recipe9.bake(&aes_output)?;
     println!("{}", aes_decrypt_result);
+
+    let aes_cfb_key = Bytes::new("FooBar Lorem ipsum dolor sit ame".as_bytes());
+    let aes_cfb_iv = Bytes::new("co et eiusmod eu".as_bytes());
+    let aes_cfb_encrypt = AesEncrypt::<_, NoPadding>::new(&aes_cfb_key, Cfb::new(&aes_cfb_iv));
+    let recipe_cfb_aes = Recipe::new(vec![Box::new(aes_cfb_encrypt), Box::new(ToHex::default())]);
+    let aes_cfb_output = recipe_cfb_aes.bake(&aes_input)?;
+    println!("{}", aes_cfb_output);
+    let aes_cfb_decrypt = AesDecrypt::<_, NoPadding>::new(&aes_cfb_key, Cfb::new(&aes_cfb_iv));
+    let recipe_cfb_aes_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(aes_cfb_decrypt),
+    ]);
+    let aes_cfb_decrypt_result = recipe_cfb_aes_decrypt.bake(&aes_cfb_output)?;
+    println!("{}", aes_cfb_decrypt_result);
+
+    let aes_ctr_encrypt = AesEncrypt::<_, NoPadding>::new(&aes_cfb_key, Ctr::new(&aes_cfb_iv));
+    let recipe_ctr_aes = Recipe::new(vec![Box::new(aes_ctr_encrypt), Box::new(ToHex::default())]);
+    let aes_ctr_output = recipe_ctr_aes.bake(&aes_input)?;
+    println!("{}", aes_ctr_output);
+    let aes_ctr_decrypt = AesDecrypt::<_, NoPadding>::new(&aes_cfb_key, Ctr::new(&aes_cfb_iv));
+    let recipe_ctr_aes_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(aes_ctr_decrypt),
+    ]);
+    let aes_ctr_decrypt_result = recipe_ctr_aes_decrypt.bake(&aes_ctr_output)?;
+    println!("{}", aes_ctr_decrypt_result);
+
+    let aes_gcm_encrypt =
+        AesEncrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_cfb_iv, None));
+    let recipe_gcm_aes = Recipe::new(vec![Box::new(aes_gcm_encrypt), Box::new(ToHex::default())]);
+    let aes_gcm_output = recipe_gcm_aes.bake(&aes_input)?;
+    println!("{}", aes_gcm_output);
+    let aes_gcm_decrypt =
+        AesDecrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_cfb_iv, None));
+    let recipe_gcm_aes_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(aes_gcm_decrypt),
+    ]);
+
+    /*
+    let mut fake_gcm_output = aes_gcm_output.to_vec();
+    // 篡改最后一个字节，模拟标签验证失败
+    let last_index = fake_gcm_output.len() - 1;
+    fake_gcm_output[last_index] ^= 0x01;
+    let aes_gcm_decrypt_result = recipe_gcm_aes_decrypt.bake(&fake_gcm_output)?;
+    */
+    let aes_gcm_decrypt_result = recipe_gcm_aes_decrypt.bake(&aes_gcm_output)?;
+    println!("{}", aes_gcm_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 
@@ -152,6 +253,40 @@ fn main() -> Result<()> {
     let recipe13 = Recipe::new(vec![Box::new(sm4_decrypt)]);
     let sm4_decrypt_result = recipe13.bake(&sm4_output)?;
     println!("{:?}", sm4_decrypt_result);
+
+    let sm4_ofb_input = Bytes::new(b"Hello, SM4 More Mode!Hello, SM4 More Mode!".as_ref());
+    let sm4_ofb_key = Bytes::new(b"Sixteen byte key".as_ref());
+    let sm4_ofb_iv = Bytes::new(b"InitialVector123".as_ref());
+    let sm4_ofb_encrypt = Sm4Encrypt::<_, NoPadding>::new(&sm4_ofb_key, Ofb::new(&sm4_ofb_iv));
+    let recipe_sm4_ofb = Recipe::new(vec![Box::new(sm4_ofb_encrypt), Box::new(ToHex::default())]);
+    let sm4_ofb_output = recipe_sm4_ofb.bake(&sm4_ofb_input)?;
+    println!("{}", sm4_ofb_output);
+    let sm4_ofb_decrypt = Sm4Decrypt::<_, NoPadding>::new(&sm4_ofb_key, Ofb::new(&sm4_ofb_iv));
+    let recipe_sm4_ofb_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(sm4_ofb_decrypt),
+    ]);
+    let sm4_ofb_decrypt_result = recipe_sm4_ofb_decrypt.bake(&sm4_ofb_output)?;
+    println!("{}", sm4_ofb_decrypt_result);
+
+    let sm4_ctr_iv = Bytes::new(
+        [
+            0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
+            0xff, 0xff,
+        ]
+        .as_ref(),
+    );
+    let sm4_ctr_encrypt = Sm4Encrypt::<_, NoPadding>::new(&sm4_ofb_key, Ctr::new(&sm4_ctr_iv));
+    let recipe_sm4_ctr = Recipe::new(vec![Box::new(sm4_ctr_encrypt), Box::new(ToHex::default())]);
+    let sm4_ctr_output = recipe_sm4_ctr.bake(&sm4_ofb_input)?;
+    println!("{}", sm4_ctr_output);
+    let sm4_ctr_decrypt = Sm4Decrypt::<_, NoPadding>::new(&sm4_ofb_key, Ctr::new(&sm4_ctr_iv));
+    let recipe_sm4_ctr_decrypt = Recipe::new(vec![
+        Box::new(FromHex::default()),
+        Box::new(sm4_ctr_decrypt),
+    ]);
+    let sm4_ctr_decrypt_result = recipe_sm4_ctr_decrypt.bake(&sm4_ctr_output)?;
+    println!("{}", sm4_ctr_decrypt_result);
     println!("---- ---- ---- ---- ----");
     println!();
 
