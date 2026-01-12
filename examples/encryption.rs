@@ -180,13 +180,15 @@ fn main() -> Result<()> {
     let aes_ctr_decrypt_result = recipe_ctr_aes_decrypt.bake(&aes_ctr_output)?;
     println!("{}", aes_ctr_decrypt_result);
 
+    let aes_gcm_iv = Bytes::new("co et eiusmod euABCD".as_bytes());
+    let aes_gcm_aad = Bytes::new(b"Additional Auth Data".as_ref());
     let aes_gcm_encrypt =
-        AesEncrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_cfb_iv, None));
+        AesEncrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_gcm_iv, Some(&aes_gcm_aad)));
     let recipe_gcm_aes = Recipe::new(vec![Box::new(aes_gcm_encrypt), Box::new(ToHex::default())]);
     let aes_gcm_output = recipe_gcm_aes.bake(&aes_input)?;
     println!("{}", aes_gcm_output);
     let aes_gcm_decrypt =
-        AesDecrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_cfb_iv, None));
+        AesDecrypt::<_, NoPadding>::new(&aes_cfb_key, Gcm::new(&aes_gcm_iv, Some(&aes_gcm_aad)));
     let recipe_gcm_aes_decrypt = Recipe::new(vec![
         Box::new(FromHex::default()),
         Box::new(aes_gcm_decrypt),

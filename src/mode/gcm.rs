@@ -44,10 +44,10 @@ fn gmul_u128(a: u128, b: u128) -> u128 {
 // 计数器自增 采用进位方式 不考虑溢出部分
 // 有别于CyberChef中的实现(只对最后4个字节进行自增)
 impl Gcm {
-    pub fn new(iv: &[u8], additional_data: Option<Bytes>) -> Self {
+    pub fn new(iv: &[u8], additional_data: Option<&[u8]>) -> Self {
         Self {
             iv: Bytes::new(iv),
-            additional_data,
+            additional_data: additional_data.map(Bytes::new),
         }
     }
 
@@ -103,17 +103,22 @@ impl Mode for Gcm {
 
         let block_size: usize = block_size.into();
         let mut iv = self.iv.to_vec();
-        iv.resize(block_size, 0);
+        let iv_len = iv.len() * 8; // in bits
 
         let ghash_key: u128 = u128::from_be_bytes(h.to_vec().as_slice().try_into().unwrap());
-        let iv_u128 = u128::from_be_bytes(iv.as_slice().try_into().unwrap());
-        let counter0 = if iv.len() == 12 {
-            (iv_u128 << 32) | 0x00000001
+
+        let counter0 = if iv_len == 96 {
+            iv.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+            u128::from_be_bytes(iv.as_slice().try_into().unwrap())
         } else {
-            let iv_len = iv.len() * 8; // in bits
-            let s = 128 * iv_len.div_ceil(128) - iv_len;
-            let iv_padding = vec![iv_u128 << s, iv_len as u128];
-            ghash_u128(ghash_key, &iv_padding)
+            let iv_block_count = iv.len().div_ceil(block_size);
+            iv.resize(block_size * iv_block_count, 0);
+            let mut iv_blocks = Vec::with_capacity(iv_block_count + 1);
+            for chunk in iv.chunks(block_size) {
+                iv_blocks.push(u128::from_be_bytes(chunk.try_into().unwrap()));
+            }
+            iv_blocks.push(iv_len as u128);
+            ghash_u128(ghash_key, &iv_blocks)
         };
 
         let counter0_block = Bytes::new(counter0.to_be_bytes().as_ref());
@@ -196,17 +201,22 @@ impl Mode for Gcm {
 
         let block_size: usize = block_size.into();
         let mut iv = self.iv.to_vec();
-        iv.resize(block_size, 0);
+        let iv_len = iv.len() * 8; // in bits
 
         let ghash_key: u128 = u128::from_be_bytes(h.to_vec().as_slice().try_into().unwrap());
-        let iv_u128 = u128::from_be_bytes(iv.as_slice().try_into().unwrap());
-        let counter0 = if iv.len() == 12 {
-            (iv_u128 << 32) | 0x00000001
+
+        let counter0 = if iv_len == 96 {
+            iv.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+            u128::from_be_bytes(iv.as_slice().try_into().unwrap())
         } else {
-            let iv_len = iv.len() * 8; // in bits
-            let s = 128 * iv_len.div_ceil(128) - iv_len;
-            let iv_padding = vec![iv_u128 << s, iv_len as u128];
-            ghash_u128(ghash_key, &iv_padding)
+            let iv_block_count = iv.len().div_ceil(block_size);
+            iv.resize(block_size * iv_block_count, 0);
+            let mut iv_blocks = Vec::with_capacity(iv_block_count + 1);
+            for chunk in iv.chunks(block_size) {
+                iv_blocks.push(u128::from_be_bytes(chunk.try_into().unwrap()));
+            }
+            iv_blocks.push(iv_len as u128);
+            ghash_u128(ghash_key, &iv_blocks)
         };
 
         let counter0_block = Bytes::new(counter0.to_be_bytes().as_ref());
