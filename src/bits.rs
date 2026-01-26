@@ -125,9 +125,10 @@ impl<'a> BitXor<&'a Bits> for &'a Bits {
     fn bitxor(self, rhs: &'a Bits) -> Self::Output {
         // bit xor
         let length = self.len();
+        let rhs_len = rhs.len();
         let mut output = Vec::with_capacity(length);
         for i in 0..length {
-            output.push(self[i] ^ rhs[i % length]);
+            output.push(self[i] ^ rhs[i % rhs_len]);
         }
 
         Self::Output::new(output)

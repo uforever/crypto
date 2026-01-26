@@ -124,10 +124,11 @@ impl<'a> BitXor<&'a Bytes> for &'a Bytes {
     // xor 统一改为循环异或
     fn bitxor(self, rhs: &'a Bytes) -> Self::Output {
         let length = self.len();
+        let rhs_len = rhs.len();
 
         let mut result = Vec::with_capacity(length);
         for i in 0..length {
-            result.push(self[i] ^ rhs[i % length]);
+            result.push(self[i] ^ rhs[i % rhs_len]);
         }
 
         Self::Output::new(result)
