@@ -4,12 +4,14 @@ use std::ops::{BitXor, Deref};
 use crate::bits::Bits;
 use crate::enums::Bit;
 
-#[derive(Clone, Default)]
+/// A byte-string wrapper around `Vec<u8>`, the data currency of this crate.
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct Bytes {
     inner: Vec<u8>,
 }
 
 impl Bytes {
+    /// Creates `Bytes` from anything that dereferences to `[u8]`.
     pub fn new<T>(s: T) -> Self
     where
         T: Deref<Target = [u8]>,
@@ -17,10 +19,12 @@ impl Bytes {
         Self { inner: s.to_vec() }
     }
 
+    /// Expands the bytes into bits, most significant bit first.
     pub fn to_bits(&self) -> Bits {
         Bits::from(self.deref())
     }
 
+    /// Left-pads with `value` until the length reaches `len`.
     pub fn align(&self, len: usize, value: u8) -> Self {
         let mut v = self.to_vec();
         v.reverse();
@@ -29,11 +33,13 @@ impl Bytes {
         Self::new(v)
     }
 
+    /// Cyclic XOR: the right operand repeats to match this length.
     pub fn xor(&self, other: &Self) -> Self {
         self ^ other
     }
 
-    // 自增1 不关心溢出
+    // increments by 1, overflow ignored
+    /// Increments the value by one (big-endian), wrapping around on overflow.
     pub fn inc(&mut self) {
         for i in (0..self.len()).rev() {
             if self.inner[i] == 0xff {
@@ -45,7 +51,8 @@ impl Bytes {
         }
     }
 
-    // 32位自增 不关心溢出
+    // increments the last 32 bits, overflow ignored
+    /// Increments only the last 32 bits (big-endian), wrapping around on overflow.
     pub fn inc32(&mut self) {
         let len = self.len();
         for i in (len - 4..len).rev() {
@@ -58,6 +65,7 @@ impl Bytes {
         }
     }
 
+    /// Selects bytes by the given index table; out-of-range indexes yield 0.
     pub fn permutation(&self, permuted_choice: &[usize]) -> Self {
         let output_len = permuted_choice.len();
         let mut output = Vec::with_capacity(output_len);
@@ -121,7 +129,7 @@ impl From<&[Bit]> for Bytes {
 impl<'a> BitXor<&'a Bytes> for &'a Bytes {
     type Output = Bytes;
 
-    // xor 统一改为循环异或
+    // xor always performs a cyclic xor
     fn bitxor(self, rhs: &'a Bytes) -> Self::Output {
         let length = self.len();
         let rhs_len = rhs.len();

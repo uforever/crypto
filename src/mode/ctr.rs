@@ -2,17 +2,21 @@ use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
+use crate::types::Result;
 
-// 计数器模式
-// 加解密过程均支持并行
-// 支持无填充
+// Counter (CTR) mode
+// both encryption and decryption are parallelizable
+// supports no padding
+/// Counter (CTR) mode: encrypts an incrementing counter to form a keystream,
+/// supporting parallel encryption and decryption.
 #[derive(Clone, Debug)]
 pub struct Ctr {
     pub iv: Bytes,
 }
 
-// 计数器自增 采用CyberChef中的实现(只对后32bit进行自增)
+// counter increment follows the CyberChef implementation (only the last 32 bits are incremented)
 impl Ctr {
+    /// Creates a CTR mode with the given initialization vector (counter).
     pub fn new(iv: &[u8]) -> Self {
         Self { iv: Bytes::new(iv) }
     }
@@ -36,7 +40,7 @@ impl Ctr {
             let block: Bits = chunk.into();
             let block_key = block_crypt(&vector);
             output.extend_from_slice(&block.xor(&block_key).to_bytes());
-            // 向量不断自增
+            // the counter keeps incrementing
             vector.inc32();
         }
 
@@ -59,7 +63,7 @@ impl Ctr {
             let block = Bytes::new(chunk);
             let block_key = block_crypt(&vector);
             output.extend_from_slice(&block.xor(&block_key));
-            // 向量不断自增
+            // the counter keeps incrementing
             vector.inc32();
         }
         Bytes::new(output)
@@ -72,8 +76,8 @@ impl Mode for Ctr {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bits_crypt(input, block_size, block_encrypt))
     }
 
     fn bits_encrypt(
@@ -81,18 +85,18 @@ impl Mode for Ctr {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bits_crypt(input, block_size, block_encrypt))
     }
 
-    // 加解密过程相同
+    // encryption and decryption are identical
     fn bytes_decrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        self.bytes_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bytes_crypt(input, block_size, block_encrypt))
     }
 
     fn bytes_encrypt(
@@ -100,7 +104,7 @@ impl Mode for Ctr {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        self.bytes_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bytes_crypt(input, block_size, block_encrypt))
     }
 }

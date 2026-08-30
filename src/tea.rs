@@ -1,3 +1,5 @@
+//! The XXTEA (Corrected Block TEA) cipher.
+
 mod xxtea_decrypt;
 mod xxtea_encrypt;
 

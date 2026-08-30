@@ -15,7 +15,7 @@ fn main() -> Result<()> {
     println!("{:?}", result1);
     let result2 = bit_padding_2.pad(&result1);
     println!("{:?}", result2);
-    let result3 = bit_padding_2.unpad(&result2);
+    let result3 = bit_padding_2.unpad(&result2)?;
     println!("{:?}", result3);
     let result4 = bit_padding_1.unpad(&result3);
     println!("{:?}", result4);
@@ -37,7 +37,7 @@ fn main() -> Result<()> {
     let zero_padding = ZeroPadding::new(BlockSize::Bytes16);
     let result7 = zero_padding.pad(&padding_input);
     println!("{:?}", result7);
-    let result8 = zero_padding.unpad(&result7);
+    let result8 = zero_padding.unpad(&result7)?;
     println!("{:?}", result8);
     println!("---- ---- ----");
     println!();

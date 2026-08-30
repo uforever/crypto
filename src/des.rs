@@ -1,3 +1,5 @@
+//! The DES and triple-DES (3DES) block ciphers.
+
 use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::Bit::{self, One, Zero};
@@ -646,14 +648,14 @@ const S_BOXES: [[[Bit; 4]; 64]; 8] = [
     ],
 ];
 
-// 密钥调度
+// key schedule
 fn key_schedule(key: &Bytes) -> Vec<Bits> {
-    // 取有效位 56 bit
+    // keep the effective bits: 56 bits
     // PC1: 64bit -> 56bit
-    // 通过分成左右两部分
-    // 分别循环左移 再通过PC2生成16个48bit的key
+    // split into left and right halves,
+    // rotate each left cyclically, then generate 16 48-bit keys via PC2
     // PC2: 56bit -> 48bit * 16
-    // 我这里直接合并了两次置换选择
+    // here the two permutation choices are merged directly
     let original_key: Bits = key.to_bits();
 
     let mut sub_keys = Vec::with_capacity(16);
@@ -664,7 +666,7 @@ fn key_schedule(key: &Bytes) -> Vec<Bits> {
     sub_keys
 }
 
-// 替换 48bit -> 32bit
+// substitution 48bit -> 32bit
 fn s_boxes(input: &Bits) -> Bits {
     let mut result = vec![];
 

@@ -1,3 +1,11 @@
+//! A CyberChef-inspired crypto toolkit.
+//!
+//! Block/stream ciphers, hashes, encodings and padding schemes implemented
+//! as composable [`Operation`]s, operating on the [`Bytes`] data type.
+//!
+//! [`Operation`]: crate::operation::Operation
+//! [`Bytes`]: crate::bytes::Bytes
+
 pub mod aes;
 pub mod base64;
 pub mod bits;
@@ -19,18 +27,3 @@ pub mod sm3;
 pub mod sm4;
 pub mod tea;
 pub mod types;
-
-// pub fn add(left: u64, right: u64) -> u64 {
-//     left + right
-// }
-//
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//
-//     #[test]
-//     fn it_works() {
-//         let result = add(2, 2);
-//         assert_eq!(result, 4);
-//     }
-// }

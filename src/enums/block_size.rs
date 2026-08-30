@@ -1,3 +1,4 @@
+/// The cipher block size in bytes.
 #[derive(Clone, Copy, Debug)]
 pub enum BlockSize {
     Bytes8,

@@ -2,26 +2,35 @@ use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
+use crate::types::Result;
 
-// 计数器模式
-// 加解密过程均支持并行
-// 支持无填充
+// GCM (Galois/Counter Mode)
+// encrypts in CTR mode and appends an authentication tag for integrity checking
+// supports only 128-bit blocks and the byte interface only
 #[derive(Clone, Debug)]
 pub struct Gcm {
     pub iv: Bytes,
     pub additional_data: Option<Bytes>,
 }
 
+impl Gcm {
+    pub fn new(iv: &[u8], additional_data: Option<&[u8]>) -> Self {
+        Self {
+            iv: Bytes::new(iv),
+            additional_data: additional_data.map(Bytes::new),
+        }
+    }
+}
+
 fn ghash_u128(key: u128, messages: &[u128]) -> u128 {
     let mut y = 0u128;
     for message in messages {
-        let yi = gmul_u128(y ^ message, key);
-        y = yi;
+        y = gmul_u128(y ^ message, key);
     }
     y
 }
 
-/// u128版本的Galois域乘法
+/// Galois field multiplication over u128
 fn gmul_u128(a: u128, b: u128) -> u128 {
     let mut v = b;
     let mut z = 0u128;
@@ -41,43 +50,100 @@ fn gmul_u128(a: u128, b: u128) -> u128 {
     z
 }
 
-// 计数器自增 采用进位方式 不考虑溢出部分
-// 有别于CyberChef中的实现(只对最后4个字节进行自增)
-impl Gcm {
-    pub fn new(iv: &[u8], additional_data: Option<&[u8]>) -> Self {
-        Self {
-            iv: Bytes::new(iv),
-            additional_data: additional_data.map(Bytes::new),
-        }
+fn block_to_u128(block: &[u8]) -> u128 {
+    u128::from_be_bytes(block.try_into().expect("GCM block must be 16 bytes"))
+}
+
+// compute the initial counter value
+// for a 96-bit IV, append [0x00, 0x00, 0x00, 0x01] directly
+// for other lengths, zero-pad to a 16-byte multiple, GHASH it, then append the bit length
+fn counter0_from_iv(iv: &[u8], ghash_key: u128) -> u128 {
+    if iv.len() * 8 == 96 {
+        let mut block = iv.to_vec();
+        block.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
+        block_to_u128(&block)
+    } else {
+        let mut padded = iv.to_vec();
+        padded.resize(padded.len().div_ceil(16) * 16, 0);
+        let mut blocks: Vec<u128> = padded.chunks(16).map(block_to_u128).collect();
+        blocks.push((iv.len() * 8) as u128);
+        ghash_u128(ghash_key, &blocks)
+    }
+}
+
+// CTR-mode encryption/decryption (the counter is incremented before being encrypted)
+// the counter increment follows the CyberChef implementation (only the last 32 bits)
+fn ctr_crypt(input: &[u8], counter0: u128, block_encrypt: &impl Fn(&[u8]) -> Bytes) -> Vec<u8> {
+    let mut counter = Bytes::new(counter0.to_be_bytes().as_slice());
+    let mut output = Vec::with_capacity(input.len());
+
+    for chunk in input.chunks(16) {
+        // the counter keeps incrementing
+        counter.inc32();
+        let block_key = block_encrypt(&counter);
+        output.extend_from_slice(&Bytes::new(chunk).xor(&block_key));
+    }
+    output
+}
+
+// compute the authentication tag
+fn authentication_tag(
+    additional_data: Option<&Bytes>,
+    ciphertext: &[u8],
+    counter0: u128,
+    ghash_key: u128,
+    block_encrypt: &impl Fn(&[u8]) -> Bytes,
+) -> [u8; 16] {
+    let mut auth_data = Vec::new();
+
+    // append the additional authenticated data (AAD)
+    if let Some(aad) = additional_data {
+        auth_data.extend_from_slice(aad);
+        // pad to a 16-byte boundary
+        let padding_len = (16 - (aad.len() % 16)) % 16;
+        auth_data.extend_from_slice(&vec![0u8; padding_len]);
     }
 
-    fn bits_crypt(
-        &self,
-        _input: &[u8],
-        _block_size: BlockSize,
-        _block_crypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        todo!() // 用不到 暂不实现
-    }
+    // append the ciphertext
+    auth_data.extend_from_slice(ciphertext);
+    // pad to a 16-byte boundary
+    let padding_len = (16 - (ciphertext.len() % 16)) % 16;
+    auth_data.extend_from_slice(&vec![0u8; padding_len]);
+
+    // append the length block: AAD length in bits + ciphertext length in bits
+    let aad_len_bits = additional_data.map_or(0u64, |aad| (aad.len() * 8) as u64);
+    let ciphertext_len_bits = (ciphertext.len() * 8) as u64;
+    auth_data.extend_from_slice(&aad_len_bits.to_be_bytes());
+    auth_data.extend_from_slice(&ciphertext_len_bits.to_be_bytes());
+
+    // GHASH computation
+    let tag = ghash_u128(
+        ghash_key,
+        &auth_data.chunks(16).map(block_to_u128).collect::<Vec<_>>(),
+    );
+
+    // encrypt the tag with counter0
+    let e_k0 = block_encrypt(&Bytes::new(counter0.to_be_bytes().as_slice()));
+    (tag ^ block_to_u128(&e_k0)).to_be_bytes()
 }
 
 impl Mode for Gcm {
     fn bits_decrypt(
         &self,
-        input: &[u8],
-        block_size: BlockSize,
-        block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+        _input: &[u8],
+        _block_size: BlockSize,
+        _block_decrypt: impl Fn(&[Bit]) -> Bits,
+    ) -> Result<Bytes> {
+        Err("GCM mode does not support the bits interface".into())
     }
 
     fn bits_encrypt(
         &self,
-        input: &[u8],
-        block_size: BlockSize,
-        block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+        _input: &[u8],
+        _block_size: BlockSize,
+        _block_encrypt: impl Fn(&[Bit]) -> Bits,
+    ) -> Result<Bytes> {
+        Err("GCM mode does not support the bits interface".into())
     }
 
     fn bytes_decrypt(
@@ -85,103 +151,39 @@ impl Mode for Gcm {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        match block_size {
-            BlockSize::Bytes16 => {}
-            _ => panic!("GCM mode only supports 128-bit block size"),
+    ) -> Result<Bytes> {
+        if !matches!(block_size, BlockSize::Bytes16) {
+            return Err("GCM mode only supports 128-bit block size".into());
         }
         if input.len() < 16 {
-            panic!("GCM decrypt input must include authentication tag");
+            return Err("GCM decrypt input must include the authentication tag".into());
         }
 
         let ciphertext = &input[..input.len() - 16];
         let received_tag = &input[input.len() - 16..];
 
-        // 计算h
-        let zero_block = vec![0u8; block_size.into()];
-        let h = block_encrypt(&zero_block);
+        // compute h
+        let ghash_key = block_to_u128(&block_encrypt(&[0u8; 16]));
+        let counter0 = counter0_from_iv(&self.iv, ghash_key);
 
-        let block_size: usize = block_size.into();
-        let mut iv = self.iv.to_vec();
-        let iv_len = iv.len() * 8; // in bits
+        let output = ctr_crypt(ciphertext, counter0, &block_encrypt);
 
-        let ghash_key: u128 = u128::from_be_bytes(h.to_vec().as_slice().try_into().unwrap());
+        // compute the authentication tag for verification
+        let computed_tag = authentication_tag(
+            self.additional_data.as_ref(),
+            ciphertext,
+            counter0,
+            ghash_key,
+            &block_encrypt,
+        );
 
-        let counter0 = if iv_len == 96 {
-            iv.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
-            u128::from_be_bytes(iv.as_slice().try_into().unwrap())
-        } else {
-            let iv_block_count = iv.len().div_ceil(block_size);
-            iv.resize(block_size * iv_block_count, 0);
-            let mut iv_blocks = Vec::with_capacity(iv_block_count + 1);
-            for chunk in iv.chunks(block_size) {
-                iv_blocks.push(u128::from_be_bytes(chunk.try_into().unwrap()));
-            }
-            iv_blocks.push(iv_len as u128);
-            ghash_u128(ghash_key, &iv_blocks)
-        };
-
-        let counter0_block = Bytes::new(counter0.to_be_bytes().as_ref());
-        let mut vector = Bytes::new(counter0.to_be_bytes().as_ref());
-
-        let mut output = Vec::with_capacity(ciphertext.len());
-        for chunk in ciphertext.chunks(block_size) {
-            // 向量不断自增
-            vector.inc32();
-            let block = Bytes::new(chunk);
-            let block_key = block_encrypt(&vector);
-            output.extend_from_slice(&block.xor(&block_key));
+        // verify the tag
+        if computed_tag.as_slice() != received_tag {
+            return Err("GCM authentication tag verification failed".into());
         }
 
-        // 计算认证标签用于验证
-        let mut auth_data = Vec::new();
-
-        // 添加附加认证数据（AAD）
-        if let Some(aad) = &self.additional_data {
-            auth_data.extend_from_slice(aad);
-            // 填充至 16 字节边界
-            let padding_len = (16 - (aad.len() % 16)) % 16;
-            auth_data.extend_from_slice(&vec![0u8; padding_len]);
-        }
-
-        // 添加密文
-        auth_data.extend_from_slice(ciphertext);
-        // 填充至 16 字节边界
-        let padding_len = (16 - (ciphertext.len() % 16)) % 16;
-        auth_data.extend_from_slice(&vec![0u8; padding_len]);
-
-        // 添加长度块：AAD 长度（比特）+ 密文长度（比特）
-        let aad_len_bits = if let Some(aad) = &self.additional_data {
-            (aad.len() * 8) as u64
-        } else {
-            0u64
-        };
-        let ciphertext_len_bits = (ciphertext.len() * 8) as u64;
-
-        auth_data.extend_from_slice(&aad_len_bits.to_be_bytes());
-        auth_data.extend_from_slice(&ciphertext_len_bits.to_be_bytes());
-
-        // GHASH 计算
-        let auth_blocks: Vec<u128> = auth_data
-            .chunks(16)
-            .map(|chunk| u128::from_be_bytes(chunk.try_into().unwrap()))
-            .collect();
-
-        let tag_u128 = ghash_u128(ghash_key, &auth_blocks);
-
-        // 使用 counter0 加密标签
-        let e_k0 = block_encrypt(&counter0_block);
-        let e_k0_u128 = u128::from_be_bytes(e_k0.to_vec().as_slice().try_into().unwrap());
-        let computed_tag = tag_u128 ^ e_k0_u128;
-        let computed_tag_bytes = computed_tag.to_be_bytes();
-
-        // 验证标签
-        if computed_tag_bytes != received_tag {
-            panic!("GCM authentication tag verification failed");
-        }
-
-        // 返回解密后的明文
-        Bytes::new(output)
+        // return the decrypted plaintext
+        Ok(Bytes::new(output))
     }
 
     fn bytes_encrypt(
@@ -189,91 +191,29 @@ impl Mode for Gcm {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        match block_size {
-            BlockSize::Bytes16 => {}
-            _ => panic!("GCM mode only supports 128-bit block size"),
+    ) -> Result<Bytes> {
+        if !matches!(block_size, BlockSize::Bytes16) {
+            return Err("GCM mode only supports 128-bit block size".into());
         }
 
-        // 计算h
-        let zero_block = vec![0u8; block_size.into()];
-        let h = block_encrypt(&zero_block);
+        // compute h
+        let ghash_key = block_to_u128(&block_encrypt(&[0u8; 16]));
+        let counter0 = counter0_from_iv(&self.iv, ghash_key);
 
-        let block_size: usize = block_size.into();
-        let mut iv = self.iv.to_vec();
-        let iv_len = iv.len() * 8; // in bits
+        let output = ctr_crypt(input, counter0, &block_encrypt);
 
-        let ghash_key: u128 = u128::from_be_bytes(h.to_vec().as_slice().try_into().unwrap());
+        // compute the authentication tag
+        let tag = authentication_tag(
+            self.additional_data.as_ref(),
+            &output,
+            counter0,
+            ghash_key,
+            &block_encrypt,
+        );
 
-        let counter0 = if iv_len == 96 {
-            iv.extend_from_slice(&[0x00, 0x00, 0x00, 0x01]);
-            u128::from_be_bytes(iv.as_slice().try_into().unwrap())
-        } else {
-            let iv_block_count = iv.len().div_ceil(block_size);
-            iv.resize(block_size * iv_block_count, 0);
-            let mut iv_blocks = Vec::with_capacity(iv_block_count + 1);
-            for chunk in iv.chunks(block_size) {
-                iv_blocks.push(u128::from_be_bytes(chunk.try_into().unwrap()));
-            }
-            iv_blocks.push(iv_len as u128);
-            ghash_u128(ghash_key, &iv_blocks)
-        };
-
-        let counter0_block = Bytes::new(counter0.to_be_bytes().as_ref());
-        let mut vector = Bytes::new(counter0.to_be_bytes().as_ref());
-
-        let mut output = Vec::with_capacity(input.len());
-        for chunk in input.chunks(block_size) {
-            // 向量不断自增
-            vector.inc32();
-            let block = Bytes::new(chunk);
-            let block_key = block_encrypt(&vector);
-            output.extend_from_slice(&block.xor(&block_key));
-        }
-
-        // 计算认证标签
-        let mut auth_data = Vec::new();
-
-        // 添加附加认证数据（AAD）
-        if let Some(aad) = &self.additional_data {
-            auth_data.extend_from_slice(aad);
-            // 填充至 16 字节边界
-            let padding_len = (16 - (aad.len() % 16)) % 16;
-            auth_data.extend_from_slice(&vec![0u8; padding_len]);
-        }
-
-        // 添加密文
-        auth_data.extend_from_slice(&output);
-        // 填充至 16 字节边界
-        let padding_len = (16 - (output.len() % 16)) % 16;
-        auth_data.extend_from_slice(&vec![0u8; padding_len]);
-
-        // 添加长度块：AAD 长度（比特）+ 密文长度（比特）
-        let aad_len_bits = if let Some(aad) = &self.additional_data {
-            (aad.len() * 8) as u64
-        } else {
-            0u64
-        };
-        let ciphertext_len_bits = (output.len() * 8) as u64;
-
-        auth_data.extend_from_slice(&aad_len_bits.to_be_bytes());
-        auth_data.extend_from_slice(&ciphertext_len_bits.to_be_bytes());
-
-        // GHASH 计算
-        let auth_blocks: Vec<u128> = auth_data
-            .chunks(16)
-            .map(|chunk| u128::from_be_bytes(chunk.try_into().unwrap()))
-            .collect();
-
-        let tag_u128 = ghash_u128(ghash_key, &auth_blocks);
-
-        // 使用 counter0 加密标签
-        let e_k0 = block_encrypt(&counter0_block);
-        let e_k0_u128 = u128::from_be_bytes(e_k0.to_vec().as_slice().try_into().unwrap());
-        let tag = tag_u128 ^ e_k0_u128;
-
-        // 返回值包含密文和标签
-        output.extend_from_slice(&tag.to_be_bytes());
-        Bytes::new(output)
+        // the result contains the ciphertext and the tag
+        let mut result = output;
+        result.extend_from_slice(&tag);
+        Ok(Bytes::new(result))
     }
 }

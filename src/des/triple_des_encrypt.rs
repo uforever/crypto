@@ -6,6 +6,7 @@ use crate::operation::Operation;
 use crate::padding::Padding;
 use crate::types::Result;
 
+/// Triple-DES (EDE) encryption: applies DES three times with two or three keys.
 #[derive(Debug)]
 pub struct TripleDesEncrypt<M: Mode, P: Padding> {
     pub key: Bytes,
@@ -14,6 +15,7 @@ pub struct TripleDesEncrypt<M: Mode, P: Padding> {
 }
 
 impl<M: Mode, P: Padding> TripleDesEncrypt<M, P> {
+    /// Creates a 3DES encryptor; a 16-byte key is treated as 2-key 3DES.
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -26,7 +28,7 @@ impl<M: Mode, P: Padding> TripleDesEncrypt<M, P> {
 impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut key = self.key.to_vec();
-        // 对 2-key 3DES (也被称为2TDEA) 进行特殊处理
+        // special handling for 2-key 3DES (also known as 2TDEA)
         let (key1, key2, key3) = if key.len() == 16 {
             (
                 Bytes::new(&key[0..8]),
@@ -34,7 +36,7 @@ impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
                 Bytes::new(&key[0..8]),
             )
         } else {
-            // 其它情况兼容
+            // handle other cases for compatibility
             key.resize(24, 0);
             (
                 Bytes::new(&key[0..8]),
@@ -43,7 +45,7 @@ impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
             )
         };
 
-        // 加密 -> 解密 -> 加密
+        // encrypt -> decrypt -> encrypt
         let sub_keys1 = key_schedule(&key1);
         let mut sub_keys2 = key_schedule(&key2);
         sub_keys2.reverse();
@@ -52,11 +54,11 @@ impl<M: Mode, P: Padding> Operation for TripleDesEncrypt<M, P> {
         let crypt1 = block_crypt(&sub_keys1);
         let crypt2 = block_crypt(&sub_keys2);
         let crypt3 = block_crypt(&sub_keys3);
-        // 串联三次操作
+        // chain the three operations
         let crypt = |block: &[Bit]| crypt3(&crypt2(&crypt1(block)));
 
         let padded_data = self.padding.pad(input);
 
-        Ok(self.mode.bits_encrypt(&padded_data, BLOCK_SIZE, crypt))
+        self.mode.bits_encrypt(&padded_data, BLOCK_SIZE, crypt)
     }
 }

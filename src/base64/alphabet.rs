@@ -1,3 +1,4 @@
+/// A Base64 alphabet: a 64-character charset plus an optional padding character.
 #[derive(Debug)]
 pub struct Alphabet {
     pub charset: [u8; 64],

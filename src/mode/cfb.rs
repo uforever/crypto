@@ -2,16 +2,20 @@ use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
+use crate::types::Result;
 
-// 密码反馈模式
-// 加密过程不支持并行 解密过程支持并行
-// 支持无填充
+// Cipher Feedback (CFB) mode
+// encryption is not parallelizable while decryption is parallelizable
+// supports no padding
+/// Cipher feedback (CFB) mode: re-encrypts the previous ciphertext block to
+/// produce the keystream, so decryption parallelizes while encryption cannot.
 #[derive(Clone, Debug)]
 pub struct Cfb {
     pub iv: Bytes,
 }
 
 impl Cfb {
+    /// Creates a CFB mode with the given initialization vector.
     pub fn new(iv: &[u8]) -> Self {
         Self { iv: Bytes::new(iv) }
     }
@@ -23,7 +27,7 @@ impl Mode for Cfb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
         // inintialization vector
         let mut iv = self.iv.to_vec();
@@ -36,12 +40,12 @@ impl Mode for Cfb {
         for chunk in input.chunks(block_size) {
             let block: Bits = chunk.into();
             let plain: Bits = block.xor(&block_encrypt(&vector));
-            // 上一组密文作为下一个向量
+            // the previous ciphertext block becomes the next vector
             vector = block;
             output.extend_from_slice(&plain.to_bytes());
         }
 
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bits_encrypt(
@@ -49,7 +53,7 @@ impl Mode for Cfb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
 
         // inintialization vector
@@ -62,12 +66,12 @@ impl Mode for Cfb {
 
         for chunk in input.chunks(block_size) {
             let block: Bits = chunk.into();
-            // 密文作为下一个向量
+            // the ciphertext becomes the next vector
             vector = block.xor(&block_encrypt(&vector));
             output.extend_from_slice(&vector.to_bytes());
         }
 
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bytes_decrypt(
@@ -75,7 +79,7 @@ impl Mode for Cfb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
         let mut iv = self.iv.to_vec();
         iv.resize(block_size, 0);
@@ -85,10 +89,10 @@ impl Mode for Cfb {
         for chunk in input.chunks(block_size) {
             let block = Bytes::new(chunk);
             output.extend_from_slice(&block.xor(&block_encrypt(&vector)));
-            // 上一组密文作为下一个向量
+            // the previous ciphertext block becomes the next vector
             vector = block;
         }
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bytes_encrypt(
@@ -96,7 +100,7 @@ impl Mode for Cfb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
         let mut iv = self.iv.to_vec();
         iv.resize(block_size, 0);
@@ -105,10 +109,10 @@ impl Mode for Cfb {
         let mut output = Vec::with_capacity(input.len());
         for chunk in input.chunks(block_size) {
             let block = Bytes::new(chunk);
-            // 密文作为下一个向量
+            // the ciphertext becomes the next vector
             vector = block.xor(&block_encrypt(&vector));
             output.extend_from_slice(&vector);
         }
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 }

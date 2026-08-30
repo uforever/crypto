@@ -3,6 +3,7 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// Decodes Base64 input, optionally validating padding in strict mode.
 #[derive(Debug, Default)]
 pub struct FromBase64 {
     pub alphabet: Alphabet,
@@ -10,6 +11,7 @@ pub struct FromBase64 {
 }
 
 impl FromBase64 {
+    /// Creates a Base64 decoder with the given alphabet and strict-mode flag.
     pub fn new(alphabet: Alphabet, strict_mode: bool) -> Self {
         Self {
             alphabet,

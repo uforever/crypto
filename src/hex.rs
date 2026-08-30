@@ -1,3 +1,5 @@
+//! Hexadecimal encoding and decoding.
+
 mod from_hex;
 mod to_hex;
 

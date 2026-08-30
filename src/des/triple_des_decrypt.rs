@@ -6,6 +6,7 @@ use crate::operation::Operation;
 use crate::padding::Padding;
 use crate::types::Result;
 
+/// Triple-DES (DED/EDE) decryption, reversing the encryption key order.
 #[derive(Debug)]
 pub struct TripleDesDecrypt<M: Mode, P: Padding> {
     pub key: Bytes,
@@ -14,6 +15,7 @@ pub struct TripleDesDecrypt<M: Mode, P: Padding> {
 }
 
 impl<M: Mode, P: Padding> TripleDesDecrypt<M, P> {
+    /// Creates a 3DES decryptor; a 16-byte key is treated as 2-key 3DES.
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -26,7 +28,7 @@ impl<M: Mode, P: Padding> TripleDesDecrypt<M, P> {
 impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut key = self.key.to_vec();
-        // 对 2-key 3DES (也被称为2TDEA) 进行特殊处理
+        // special handling for 2-key 3DES (also known as 2TDEA)
         let (key1, key2, key3) = if key.len() == 16 {
             (
                 Bytes::new(&key[0..8]),
@@ -34,7 +36,7 @@ impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
                 Bytes::new(&key[0..8]),
             )
         } else {
-            // 其它情况兼容
+            // handle other cases for compatibility
             key.resize(24, 0);
             (
                 Bytes::new(&key[0..8]),
@@ -47,28 +49,27 @@ impl<M: Mode, P: Padding> Operation for TripleDesDecrypt<M, P> {
         let mut sub_keys2 = key_schedule(&key2);
         let mut sub_keys3 = key_schedule(&key3);
 
-        let mode_name = std::any::type_name_of_val(&self.mode);
-        if mode_name.contains("Ecb") || mode_name.contains("Cbc") {
-            // 解密 -> 加密 -> 解密
+        if self.mode.uses_decrypt_direction() {
+            // decrypt -> encrypt -> decrypt
             sub_keys3.reverse();
             sub_keys1.reverse();
             let crypt3 = block_crypt(&sub_keys3);
             let crypt2 = block_crypt(&sub_keys2);
             let crypt1 = block_crypt(&sub_keys1);
-            // 串联三次操作
+            // chain the three operations
             let crypt = |block: &[Bit]| crypt1(&crypt2(&crypt3(block)));
-            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
-            Ok(Bytes::new(self.padding.unpad(&result)))
+            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt)?;
+            Ok(Bytes::new(self.padding.unpad(&result)?))
         } else {
-            // 加密 -> 解密 -> 加密
+            // encrypt -> decrypt -> encrypt
             sub_keys2.reverse();
             let crypt1 = block_crypt(&sub_keys1);
             let crypt2 = block_crypt(&sub_keys2);
             let crypt3 = block_crypt(&sub_keys3);
-            // 串联三次操作
+            // chain the three operations
             let crypt = |block: &[Bit]| crypt3(&crypt2(&crypt1(block)));
-            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt);
-            Ok(Bytes::new(self.padding.unpad(&result)))
+            let result = self.mode.bits_decrypt(input, BLOCK_SIZE, crypt)?;
+            Ok(Bytes::new(self.padding.unpad(&result)?))
         }
     }
 }

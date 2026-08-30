@@ -1,6 +1,7 @@
 use std::fmt;
 use std::ops::BitXor;
 
+/// A single bit, the atomic unit of the bit-level cipher implementations.
 #[derive(Clone, Copy, Default, PartialEq, Eq)]
 pub enum Bit {
     #[default]

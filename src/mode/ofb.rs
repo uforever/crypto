@@ -2,16 +2,20 @@ use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
+use crate::types::Result;
 
-// 输出反馈模式
-// 加解密过程均不支持并行
-// 支持无填充
+// Output Feedback (OFB) mode
+// neither encryption nor decryption is parallelizable
+// supports no padding
+/// Output feedback (OFB) mode: turns the block cipher into a synchronous
+/// keystream generator, so encryption and decryption are the same operation.
 #[derive(Clone, Debug)]
 pub struct Ofb {
     pub iv: Bytes,
 }
 
 impl Ofb {
+    /// Creates an OFB mode with the given initialization vector.
     pub fn new(iv: &[u8]) -> Self {
         Self { iv: Bytes::new(iv) }
     }
@@ -33,7 +37,7 @@ impl Ofb {
 
         for chunk in input.chunks(block_size) {
             let block: Bits = chunk.into();
-            // 向量不断更新
+            // the vector keeps being updated
             vector = block_crypt(&vector);
             output.extend_from_slice(&block.xor(&vector).to_bytes());
         }
@@ -55,7 +59,7 @@ impl Ofb {
         let mut output = Vec::with_capacity(input.len());
         for chunk in input.chunks(block_size) {
             let block = Bytes::new(chunk);
-            // 向量不断更新
+            // the vector keeps being updated
             vector = block_crypt(&vector);
             output.extend_from_slice(&block.xor(&vector));
         }
@@ -69,8 +73,8 @@ impl Mode for Ofb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bits_crypt(input, block_size, block_encrypt))
     }
 
     fn bits_encrypt(
@@ -78,18 +82,18 @@ impl Mode for Ofb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
-        self.bits_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bits_crypt(input, block_size, block_encrypt))
     }
 
-    // 加解密过程相同
+    // encryption and decryption are identical
     fn bytes_decrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        self.bytes_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bytes_crypt(input, block_size, block_encrypt))
     }
 
     fn bytes_encrypt(
@@ -97,7 +101,7 @@ impl Mode for Ofb {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
-        self.bytes_crypt(input, block_size, block_encrypt)
+    ) -> Result<Bytes> {
+        Ok(self.bytes_crypt(input, block_size, block_encrypt))
     }
 }

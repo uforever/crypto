@@ -7,6 +7,7 @@ use crate::types::Result;
 
 use super::block_crypt;
 
+/// SM4 encryption: expands the key and runs the input through a block cipher mode.
 #[derive(Debug)]
 pub struct Sm4Encrypt<M: Mode, P: Padding> {
     pub key: Bytes,
@@ -15,6 +16,7 @@ pub struct Sm4Encrypt<M: Mode, P: Padding> {
 }
 
 impl<M: Mode, P: Padding> Sm4Encrypt<M, P> {
+    /// Creates an SM4 encryptor with the given key and mode.
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -30,8 +32,7 @@ impl<M: Mode, P: Padding> Operation for Sm4Encrypt<M, P> {
         let encrypt_func = block_crypt(&round_keys);
         let padded_data = self.padding.pad(input);
 
-        Ok(self
-            .mode
-            .bytes_encrypt(&padded_data, BLOCK_SIZE, encrypt_func))
+        self.mode
+            .bytes_encrypt(&padded_data, BLOCK_SIZE, encrypt_func)
     }
 }

@@ -8,18 +8,18 @@ use crypto::hex::FromHex;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
 
-// 实现aesdec指令
+// implements the aesdec instruction
 fn aesdec(state: &[u8], round_key: &[u8]) -> Bytes {
     let result = inv_shift_rows(state);
     let result = inv_sub_bytes(&result);
 
-    // 注意这里并不是aesenc指令的逆操作
-    // 下面两个操作的顺序和常规解密过程相反
+    // note: this is not the inverse of the aesenc instruction
+    // the order of the following two operations is reversed compared with the usual decryption flow
     let result = inv_mix_columns(&result);
     result.xor(&Bytes::new(round_key))
 }
 
-// 实现aesdec指令的逆操作
+// implements the inverse of the aesdec instruction
 fn inv_aesdec(state: &[u8], round_key: &[u8]) -> Bytes {
     let result = Bytes::new(state).xor(&Bytes::new(round_key));
     let result = mix_columns(&result);
@@ -27,7 +27,7 @@ fn inv_aesdec(state: &[u8], round_key: &[u8]) -> Bytes {
     shift_rows(&result)
 }
 
-// 实现aesenc指令
+// implements the aesenc instruction
 fn aesenc(state: &[u8], round_key: &[u8]) -> Bytes {
     let result = shift_rows(state);
     let result = sub_bytes(&result);

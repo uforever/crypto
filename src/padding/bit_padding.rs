@@ -1,6 +1,9 @@
 use crate::enums::{BlockSize, Endian};
 use crate::padding::Padding;
+use crate::types::Result;
 
+/// ISO/IEC 7816-4 style bit padding: appends `0x80` then zeros, followed by
+/// the original bit length in the chosen byte order.
 #[derive(Debug)]
 pub struct BitPadding {
     pub block_size: BlockSize,
@@ -8,13 +11,14 @@ pub struct BitPadding {
 }
 
 impl BitPadding {
+    /// Creates bit padding for the given block size and length byte order.
     pub fn new(block_size: BlockSize, endian: Endian) -> Self {
         Self { block_size, endian }
     }
 }
 
-// 虽然是bit填充 实现上还是按照byte填充的
-// 可以满足大部分使用场景
+// although this is bit padding, the implementation pads at byte granularity,
+// which satisfies most use cases
 impl Padding for BitPadding {
     fn pad(&self, data: &[u8]) -> Vec<u8> {
         let mut padded_data = data.to_vec();
@@ -66,7 +70,7 @@ impl Padding for BitPadding {
         padded_data
     }
 
-    fn unpad(&self, data: &[u8]) -> Vec<u8> {
+    fn unpad(&self, data: &[u8]) -> Result<Vec<u8>> {
         let mut unpadded_data = data.to_vec();
         let length = data.len();
         let original_length: usize = match self.block_size {
@@ -151,7 +155,7 @@ impl Padding for BitPadding {
         };
 
         unpadded_data.truncate(original_length);
-        unpadded_data
+        Ok(unpadded_data)
     }
 
     fn build(block_size: BlockSize) -> Self {

@@ -3,12 +3,14 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// Encodes bytes into Base64 (RFC 4648) with a configurable alphabet.
 #[derive(Debug, Default)]
 pub struct ToBase64 {
     pub alphabet: Alphabet,
 }
 
 impl ToBase64 {
+    /// Creates a Base64 encoder with the given alphabet.
     pub fn new(alphabet: Alphabet) -> Self {
         Self { alphabet }
     }

@@ -6,7 +6,7 @@ use crate::types::Result;
 
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes128;
 
-// 前8个质数2..19的平方根的分数部分的前64位
+// first 64 bits of the fractional parts of the square roots of the first 8 primes 2..19
 const A: u64 = 0x6a09e667f3bcc908;
 const B: u64 = 0xbb67ae8584caa73b;
 const C: u64 = 0x3c6ef372fe94f82b;
@@ -16,7 +16,7 @@ const F: u64 = 0x9b05688c2b3e6c1f;
 const G: u64 = 0x1f83d9abfb41bd6b;
 const H: u64 = 0x5be0cd19137e2179;
 
-// 前80个质数2..409的立方根分数部分的前64位
+// first 64 bits of the fractional parts of the cube roots of the first 80 primes 2..409
 const K: [u64; 80] = [
     0x428a2f98d728ae22,
     0x7137449123ef65cd,
@@ -100,6 +100,7 @@ const K: [u64; 80] = [
     0x6c44198c4a475817,
 ];
 
+/// The SHA-512 hash (FIPS 180-4), producing a 512-bit digest.
 #[derive(Debug, Default)]
 pub struct Sha512;
 

@@ -12,6 +12,7 @@ const C: u32 = 0x98BADCFE;
 const D: u32 = 0x10325476;
 const E: u32 = 0xC3D2E1F0;
 
+/// The SHA-1 hash (FIPS 180-4) with a configurable round count.
 #[derive(Debug)]
 pub struct Sha1 {
     pub rounds: usize,
@@ -24,6 +25,7 @@ impl Default for Sha1 {
 }
 
 impl Sha1 {
+    /// Creates a SHA-1 variant with the given number of rounds (80 for standard SHA-1).
     pub fn new(rounds: usize) -> Sha1 {
         if rounds == 0 {
             return Sha1 { rounds: 80 };

@@ -1,3 +1,5 @@
+//! The SM4 block cipher (GB/T 32907-2016).
+
 use crate::bytes::Bytes;
 use crate::enums::BlockSize;
 
@@ -38,17 +40,17 @@ const CK: [u32; 32] = [
 
 const FK: [u32; 4] = [0xa3b1bac6, 0x56aa3350, 0x677d9197, 0xb27022dc];
 
-// 线性变换 L
+// linear transform L
 fn linear_transform(x: u32) -> u32 {
     x ^ (x.rotate_left(2) ^ x.rotate_left(10) ^ x.rotate_left(18) ^ x.rotate_left(24))
 }
 
-// 线性变换 L'
+// linear transform L'
 fn l_prime(x: u32) -> u32 {
     x ^ (x.rotate_left(13) ^ x.rotate_left(23))
 }
 
-// 非线性变换 替换函数
+// nonlinear transform: the substitution function (S-box)
 fn s_box(x: u32) -> u32 {
     let mut result = 0;
     for i in 0..4 {
@@ -58,21 +60,21 @@ fn s_box(x: u32) -> u32 {
     result
 }
 
-// 密钥调度算法
+// key schedule algorithm
 fn key_schedule(key: &Bytes) -> Vec<u32> {
-    // 轮密钥
+    // round keys
     let mut round_keys = Vec::with_capacity(ROUNDS);
 
-    // 初始密钥
+    // original key
     let mut original_key = key.to_vec();
-    // 严格来说密钥长度必须为16字节
-    // 但我们这里手动将其补充到16字节
+    // strictly speaking the key must be exactly 16 bytes,
+    // but here we manually pad it to 16 bytes
     let length = original_key.len();
     if length < 16 {
         original_key.extend(vec![0; 16 - length]);
     }
 
-    // 将密钥分为4个32位的整数
+    // split the key into four 32-bit integers
     let mut k = [
         u32::from_be_bytes([
             original_key[0],
@@ -125,7 +127,7 @@ fn block_crypt(round_keys: &[u32]) -> impl Fn(&[u8]) -> Bytes + '_ {
             u32::from_be_bytes([block[8], block[9], block[10], block[11]]),
             u32::from_be_bytes([block[12], block[13], block[14], block[15]]),
         ];
-        // 32轮迭代
+        // 32 rounds of iteration
         for round_key in round_keys.iter().take(ROUNDS) {
             let temp = x[0] ^ linear_transform(s_box(x[1] ^ x[2] ^ x[3] ^ round_key));
             x[0] = x[1];
@@ -133,7 +135,7 @@ fn block_crypt(round_keys: &[u32]) -> impl Fn(&[u8]) -> Bytes + '_ {
             x[2] = x[3];
             x[3] = temp;
         }
-        // 1次反序变换
+        // one reverse transform (R)
         Bytes::new(
             [
                 x[3].to_be_bytes(),

@@ -4,15 +4,15 @@ use crate::operation::{Hashing, Operation};
 use crate::padding::{BitPadding, Padding as _};
 use crate::types::Result;
 
-// 块大小 512 bits
+// block size: 512 bits
 const BLOCK_SIZE: BlockSize = BlockSize::Bytes64;
 
-// 初始化向量
+// initialization vector
 const IV: [u32; 8] = [
     0x7380166f, 0x4914b2b9, 0x172442d7, 0xda8a0600, 0xa96f30bc, 0x163138aa, 0xe38dee4d, 0xb0fb0e4e,
 ];
 
-// 迭代压缩过程中使用到的一些函数
+// helper functions used in the iterative compression
 
 fn tj(j: usize) -> u32 {
     if j < 16 {
@@ -46,12 +46,13 @@ fn p1(x: u32) -> u32 {
     x ^ x.rotate_left(15) ^ x.rotate_left(23)
 }
 
+/// The SM3 cryptographic hash (GB/T 32905-2016), producing a 256-bit digest.
 #[derive(Debug, Default)]
 pub struct Sm3;
 
 impl Operation for Sm3 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
-        // 填充
+        // padding
         let padded_data = BitPadding::new(BLOCK_SIZE, Endian::Big).pad(input);
 
         let mut a0 = IV[0];
@@ -73,10 +74,10 @@ impl Operation for Sm3 {
             let mut g = g0;
             let mut h = h0;
 
-            // 扩展
-            // 每块512比特 分为16个32位的字
-            // 16组扩展成68组
-            // 68组扩展成132组
+            // message expansion
+            // each 512-bit block is split into 16 32-bit words
+            // expanded from 16 to 68 words
+            // then from 68 to 132 words
             let mut w = [0u32; 132];
             for i in 0..16 {
                 w[i] = u32::from_be_bytes(chunk[i * 4..i * 4 + 4].try_into()?);
@@ -90,7 +91,7 @@ impl Operation for Sm3 {
                 w[i] = w[i - 68] ^ w[i - 64];
             }
 
-            // 迭代压缩
+            // iterative compression
             for j in 0..64 {
                 let ss1 = a
                     .rotate_left(12)

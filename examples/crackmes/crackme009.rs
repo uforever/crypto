@@ -6,14 +6,14 @@ use crypto::types::Result;
 const FLOOR: u128 = 0x20;
 const CEIL: u128 = 0x7E;
 
-// 根据给定的sum和count生成count个随机字节
-// 每个字节的范围为[FLOOR, CEIL]
+// generate count random bytes with the given sum
+// each byte is in the range [FLOOR, CEIL]
 fn gen_bytes(sum: u128, count: u128) -> Result<Vec<u8>> {
     if count == 1 {
         return Ok(vec![sum as u8]);
     }
 
-    // 计算当前字符的可选范围
+    // compute the selectable range for the current character
     let rest_sum_min = FLOOR * (count - 1);
     let rest_sum_max = CEIL * (count - 1);
 
@@ -34,10 +34,10 @@ fn gen_bytes(sum: u128, count: u128) -> Result<Vec<u8>> {
         ceil = CEIL;
     }
 
-    // 随机生成单个字节
+    // generate a single random byte
     let now = SystemTime::now().duration_since(UNIX_EPOCH)?;
     let random_u128 = now.as_nanos() % (ceil - floor + 1) + floor;
-    // 递归调用
+    // recursive call
     let rest_sum = sum - random_u128;
     let rest_count = count - 1;
     let random_byte = random_u128 as u8;

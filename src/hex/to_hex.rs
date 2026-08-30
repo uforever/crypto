@@ -3,6 +3,8 @@ use crate::enums::Case;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// Encodes bytes into a hexadecimal string with configurable delimiter,
+/// per-byte prefix and letter case.
 #[derive(Debug, Default)]
 pub struct ToHex {
     pub delimiter: String,
@@ -11,6 +13,7 @@ pub struct ToHex {
 }
 
 impl ToHex {
+    /// Creates a hex encoder with the given delimiter, prefix and case.
     pub fn new(delimiter: &str, prefix: &str, case: Case) -> Self {
         Self {
             delimiter: delimiter.to_string(),
@@ -23,11 +26,13 @@ impl ToHex {
 impl Operation for ToHex {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let hex_string = input
-            .to_vec()
             .iter()
-            .map(|byte| match self.case {
-                Case::Upper => format!("{:02X}", byte),
-                Case::Lower => format!("{:02x}", byte),
+            .map(|byte| {
+                let hex = match self.case {
+                    Case::Upper => format!("{byte:02X}"),
+                    Case::Lower => format!("{byte:02x}"),
+                };
+                format!("{}{}", self.prefix, hex)
             })
             .collect::<Vec<String>>()
             .join(&self.delimiter);

@@ -44,6 +44,7 @@ const MULT_3: [u8; 256] = [
     0x0b, 0x08, 0x0d, 0x0e, 0x07, 0x04, 0x01, 0x02, 0x13, 0x10, 0x15, 0x16, 0x1f, 0x1c, 0x19, 0x1a,
 ];
 
+/// AES encryption: expands the key and runs the input through a block cipher mode.
 #[derive(Debug)]
 pub struct AesEncrypt<M: Mode, P: Padding> {
     pub key: Bytes,
@@ -52,6 +53,7 @@ pub struct AesEncrypt<M: Mode, P: Padding> {
 }
 
 impl<M: Mode, P: Padding> AesEncrypt<M, P> {
+    /// Creates an AES encryptor with the given key and mode.
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -63,16 +65,16 @@ impl<M: Mode, P: Padding> AesEncrypt<M, P> {
 
 impl<M: Mode, P: Padding> Operation for AesEncrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
-        let sub_keys = key_schedule(&self.key);
+        let sub_keys = key_schedule(&self.key)?;
         let encrypt_func = block_encrypt(&sub_keys);
         let padded_data = self.padding.pad(input);
 
-        Ok(self
-            .mode
-            .bytes_encrypt(&padded_data, BLOCK_SIZE, encrypt_func))
+        self.mode
+            .bytes_encrypt(&padded_data, BLOCK_SIZE, encrypt_func)
     }
 }
 
+/// Substitutes each state byte via the AES S-box.
 pub fn sub_bytes(state: &[u8]) -> Bytes {
     let subsituted: Vec<u8> = state
         .iter()
@@ -81,10 +83,12 @@ pub fn sub_bytes(state: &[u8]) -> Bytes {
     Bytes::new(subsituted)
 }
 
+/// Rotates each of the four state rows left by its row index.
 pub fn shift_rows(state: &[u8]) -> Bytes {
     Bytes::new(state).permutation(&ROTATE_FORWARD)
 }
 
+/// Mixes each state column over GF(2^8).
 pub fn mix_columns(state: &[u8]) -> Bytes {
     let mut mixed = Vec::with_capacity(BLOCK_SIZE.into());
     for row in state.chunks(4) {

@@ -1,5 +1,8 @@
+//! The AES (Advanced Encryption Standard) block cipher.
+
 use crate::bytes::Bytes;
 use crate::enums::BlockSize;
+use crate::types::Result;
 
 mod aes_decrypt;
 mod aes_encrypt;
@@ -30,16 +33,16 @@ const S_BOX_FORWARD: [u8; 256] = [
 
 const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
 
-fn key_schedule(key: &Bytes) -> Vec<Bytes> {
+fn key_schedule(key: &Bytes) -> Result<Vec<Bytes>> {
     let mut original_key = key.to_vec();
-    while original_key.len() % 4 != 0 || original_key.is_empty() {
+    while !original_key.len().is_multiple_of(4) || original_key.is_empty() {
         original_key.push(0);
     }
-    // key 所占行数
+    // number of 4-byte rows occupied by the key
     let key_size = original_key.len() / 4;
-    // 轮数
+    // number of rounds
     let rounds = key_size + 6;
-    // 需要密钥的行数
+    // number of round-key words needed
     let keys_rows = (rounds + 1) * 4;
 
     let mut result = Vec::with_capacity(rounds);
@@ -63,10 +66,9 @@ fn key_schedule(key: &Bytes) -> Vec<Bytes> {
                 S_BOX_FORWARD[last_row[2] as usize],
                 S_BOX_FORWARD[last_row[3] as usize],
             ];
-            let rcon = match RCON.get(i / key_size - 1) {
-                Some(rcon) => *rcon,
-                None => 0,
-            };
+            let rcon = RCON
+                .get(i / key_size - 1)
+                .ok_or_else(|| format!("unsupported AES key length: {} bytes", key.len()))?;
             last_row[0] ^= rcon;
         } else if key_size > 6 && i % key_size == 4 {
             last_row = [
@@ -86,8 +88,8 @@ fn key_schedule(key: &Bytes) -> Vec<Bytes> {
         ]);
     }
 
-    result
+    Ok(result
         .chunks(4)
         .map(|row| Bytes::new(row.concat()))
-        .collect()
+        .collect())
 }

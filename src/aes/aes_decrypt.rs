@@ -100,6 +100,7 @@ const MULT_E: [u8; 256] = [
     0xd7, 0xd9, 0xcb, 0xc5, 0xef, 0xe1, 0xf3, 0xfd, 0xa7, 0xa9, 0xbb, 0xb5, 0x9f, 0x91, 0x83, 0x8d,
 ];
 
+/// AES decryption: reverses the cipher with the inverse round transforms.
 #[derive(Debug)]
 pub struct AesDecrypt<M: Mode, P: Padding> {
     pub key: Bytes,
@@ -108,6 +109,7 @@ pub struct AesDecrypt<M: Mode, P: Padding> {
 }
 
 impl<M: Mode, P: Padding> AesDecrypt<M, P> {
+    /// Creates an AES decryptor with the given key and mode.
     pub fn new(key: &[u8], mode: M) -> Self {
         Self {
             key: Bytes::new(key),
@@ -119,28 +121,29 @@ impl<M: Mode, P: Padding> AesDecrypt<M, P> {
 
 impl<M: Mode, P: Padding> Operation for AesDecrypt<M, P> {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
-        let mut sub_keys = key_schedule(&self.key);
+        let mut sub_keys = key_schedule(&self.key)?;
 
-        let mode_name = std::any::type_name_of_val(&self.mode);
-        if mode_name.contains("Ecb") || mode_name.contains("Cbc") {
+        if self.mode.uses_decrypt_direction() {
             sub_keys.reverse();
             let decrypt_func = block_decrypt(&sub_keys);
-            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, decrypt_func);
+            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, decrypt_func)?;
 
-            Ok(Bytes::new(self.padding.unpad(&result)))
+            Ok(Bytes::new(self.padding.unpad(&result)?))
         } else {
             let encrypt_func = block_encrypt(&sub_keys);
-            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, encrypt_func);
+            let result = self.mode.bytes_decrypt(input, BLOCK_SIZE, encrypt_func)?;
 
-            Ok(Bytes::new(self.padding.unpad(&result)))
+            Ok(Bytes::new(self.padding.unpad(&result)?))
         }
     }
 }
 
+/// Rotates each of the four state rows right by its row index.
 pub fn inv_shift_rows(state: &[u8]) -> Bytes {
     Bytes::new(state).permutation(&ROTATE_INVERSE)
 }
 
+/// Substitutes each state byte via the inverse AES S-box.
 pub fn inv_sub_bytes(state: &[u8]) -> Bytes {
     let subsituted: Vec<u8> = state
         .iter()
@@ -149,6 +152,7 @@ pub fn inv_sub_bytes(state: &[u8]) -> Bytes {
     Bytes::new(subsituted)
 }
 
+/// Inverses the column mixing over GF(2^8).
 pub fn inv_mix_columns(state: &[u8]) -> Bytes {
     let mut mixed = Vec::with_capacity(BLOCK_SIZE.into());
     for row in state.chunks(4) {

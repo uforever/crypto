@@ -2,12 +2,14 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// ROT13-style letter substitution with a configurable shift.
 #[derive(Debug)]
 pub struct Rot13 {
     pub shift: u8,
 }
 
 impl Rot13 {
+    /// Creates a ROT-N substitution with the given shift (0-25).
     pub fn new(shift: u8) -> Self {
         Self { shift: shift % 26 }
     }

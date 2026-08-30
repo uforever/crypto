@@ -1,12 +1,17 @@
 use crate::enums::BlockSize;
 use crate::padding::Padding;
+use crate::types::Result;
 
+/// Zero padding: appends zero bytes up to the next block boundary.
+///
+/// Removing the padding is ambiguous when the data itself ends in zeros.
 #[derive(Debug)]
 pub struct ZeroPadding {
     pub block_size: BlockSize,
 }
 
 impl ZeroPadding {
+    /// Creates zero padding for the given block size.
     pub fn new(block_size: BlockSize) -> Self {
         Self { block_size }
     }
@@ -21,13 +26,13 @@ impl Padding for ZeroPadding {
         padded_data
     }
 
-    // 严格来说是不可逆的
-    fn unpad(&self, data: &[u8]) -> Vec<u8> {
+    // strictly speaking, this padding is not reversible
+    fn unpad(&self, data: &[u8]) -> Result<Vec<u8>> {
         let mut end = data.len();
         while end > 0 && data[end - 1] == 0 {
             end -= 1;
         }
-        data[..end].to_vec()
+        Ok(data[..end].to_vec())
     }
 
     fn build(block_size: BlockSize) -> Self {

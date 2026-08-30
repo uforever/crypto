@@ -2,12 +2,14 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// RC4 stream cipher: a passphrase schedules an S-box that generates the keystream.
 #[derive(Debug, Default)]
 pub struct Rc4 {
     passphrase: Bytes,
 }
 
 impl Rc4 {
+    /// Creates an RC4 cipher with the given passphrase.
     pub fn new(passphrase: &[u8]) -> Self {
         Self {
             passphrase: Bytes::new(passphrase),
@@ -31,7 +33,7 @@ const ZERO_S_BOX: [u8; 256] = [
     243, 107, 233, 169, 117, 184, 31, 39,
 ];
 
-// 密钥调度算法KSA
+// Key Scheduling Algorithm (KSA)
 fn ksa(key: &[u8]) -> [u8; 256] {
     let key_length = key.len();
     if key_length == 0 {
@@ -52,7 +54,7 @@ impl Operation for Rc4 {
     fn run(&self, input: &[u8]) -> Result<Bytes> {
         let mut s_box = ksa(&self.passphrase);
 
-        // 伪随机生成算法PRGA
+        // Pseudo-Random Generation Algorithm (PRGA)
         let mut j: usize = 0;
         let output: Vec<u8> = input
             .iter()

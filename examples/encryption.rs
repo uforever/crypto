@@ -196,7 +196,7 @@ fn main() -> Result<()> {
 
     /*
     let mut fake_gcm_output = aes_gcm_output.to_vec();
-    // 篡改最后一个字节，模拟标签验证失败
+    // tamper with the last byte to simulate tag verification failure
     let last_index = fake_gcm_output.len() - 1;
     fake_gcm_output[last_index] ^= 0x01;
     let aes_gcm_decrypt_result = recipe_gcm_aes_decrypt.bake(&fake_gcm_output)?;

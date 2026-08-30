@@ -2,10 +2,11 @@ use crate::bits::Bits;
 use crate::bytes::Bytes;
 use crate::enums::{Bit, BlockSize};
 use crate::mode::Mode;
+use crate::types::Result;
 
-// 密码分组链接模式
-// 加密过程不支持并行 解密过程支持并行
-// 不支持无填充
+// Cipher Block Chaining (CBC) mode
+// encryption is not parallelizable while decryption is parallelizable
+// input length must be a multiple of the block size (must be ensured when using NoPadding)
 #[derive(Clone, Debug)]
 pub struct Cbc {
     pub iv: Bytes,
@@ -18,13 +19,22 @@ impl Cbc {
 }
 
 impl Mode for Cbc {
+    // decryption uses the round keys in reverse order
+    fn uses_decrypt_direction(&self) -> bool {
+        true
+    }
+
     fn bits_decrypt(
         &self,
         input: &[u8],
         block_size: BlockSize,
         block_decrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
+        if !input.len().is_multiple_of(block_size) {
+            return Err("CBC mode input length must be a multiple of the block size".into());
+        }
+
         // inintialization vector
         let mut iv = self.iv.to_vec();
         iv.resize(block_size, 0);
@@ -41,7 +51,7 @@ impl Mode for Cbc {
             output.extend_from_slice(&plain);
         }
 
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bits_encrypt(
@@ -49,8 +59,11 @@ impl Mode for Cbc {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[Bit]) -> Bits,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
+        if !input.len().is_multiple_of(block_size) {
+            return Err("CBC mode input length must be a multiple of the block size".into());
+        }
 
         // inintialization vector
         let mut iv = self.iv.to_vec();
@@ -66,7 +79,7 @@ impl Mode for Cbc {
             output.extend_from_slice(&vector.to_bytes());
         }
 
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bytes_decrypt(
@@ -74,8 +87,12 @@ impl Mode for Cbc {
         input: &[u8],
         block_size: BlockSize,
         block_decrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
+        if !input.len().is_multiple_of(block_size) {
+            return Err("CBC mode input length must be a multiple of the block size".into());
+        }
+
         let mut iv = self.iv.to_vec();
         iv.resize(block_size, 0);
         let mut vector = Bytes::new(iv);
@@ -87,7 +104,7 @@ impl Mode for Cbc {
             vector = Bytes::new(chunk);
             output.extend_from_slice(&plain);
         }
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 
     fn bytes_encrypt(
@@ -95,8 +112,12 @@ impl Mode for Cbc {
         input: &[u8],
         block_size: BlockSize,
         block_encrypt: impl Fn(&[u8]) -> Bytes,
-    ) -> Bytes {
+    ) -> Result<Bytes> {
         let block_size: usize = block_size.into();
+        if !input.len().is_multiple_of(block_size) {
+            return Err("CBC mode input length must be a multiple of the block size".into());
+        }
+
         let mut iv = self.iv.to_vec();
         iv.resize(block_size, 0);
         let mut vector = Bytes::new(iv);
@@ -107,6 +128,6 @@ impl Mode for Cbc {
             vector = block_encrypt(&block.xor(&vector));
             output.extend_from_slice(&vector);
         }
-        Bytes::new(output)
+        Ok(Bytes::new(output))
     }
 }

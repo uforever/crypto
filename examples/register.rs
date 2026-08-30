@@ -5,12 +5,12 @@ use crypto::bytes::Bytes;
 use crypto::recipe::Recipe;
 use crypto::types::Result;
 
-// 简单注册机编写示例
-// 更多例子参考crackmes目录下的内容
+// A simple keygen example
+// see the crackmes directory for more examples
 fn main() -> Result<()> {
-    // 提示用户输入
+    // prompt the user for input
     print!("Input: ");
-    io::stdout().flush().unwrap(); // 确保提示信息立即显示
+    io::stdout().flush().unwrap(); // make sure the prompt is displayed immediately
     let s_box = [
         0x69, 0xbf, 0x45, 0x32, 0xe0, 0xb2, 0x67, 0x4d, 0x9d, 0xbc, 0x86, 0xb7, 0x54, 0x6f, 0xc4,
         0x95, 0x10, 0x46, 0x57, 0xf4, 0x56, 0xf2, 0x96, 0xe4, 0x8f, 0xb9, 0x03, 0xda, 0x8b, 0x00,
@@ -49,14 +49,14 @@ fn main() -> Result<()> {
         0x54, 0x08, 0x15, 0x25, 0xbd,
     ];
 
-    // 创建一个字符串变量来存储输入
+    // create a string variable to store the input
     let mut input = String::new();
     let length = special_key.len();
 
-    // 读取标准输入
+    // read from standard input
     match io::stdin().read_line(&mut input) {
         Ok(_) => {
-            // 去掉输入字符串末尾的换行符
+            // strip the trailing newline from the input
             let input = input.trim();
             let input_bytes = Bytes::new(input.as_bytes());
 

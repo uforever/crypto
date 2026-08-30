@@ -2,6 +2,7 @@ use crate::bytes::Bytes;
 use crate::operation::Operation;
 use crate::types::Result;
 
+/// Decodes a hexadecimal string with a configurable delimiter and per-byte prefix.
 #[derive(Debug, Default)]
 pub struct FromHex {
     pub delimiter: String,
@@ -9,6 +10,7 @@ pub struct FromHex {
 }
 
 impl FromHex {
+    /// Creates a hex decoder with the given delimiter and per-byte prefix (empty for none).
     pub fn new(delimiter: &str, prefix: &str) -> Self {
         Self {
             delimiter: delimiter.to_string(),

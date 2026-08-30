@@ -1,3 +1,5 @@
+//! The SHA-2 hash family (FIPS 180-4).
+
 mod sha256;
 mod sha512;
 
